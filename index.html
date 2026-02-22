@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D</title>
+    <title>NUÑEZ 3D - DESGLOSE</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -12,36 +12,39 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     
     <style>
-        :root { --primary: #4f46e5; --accent: #818cf8; --text: #1e293b; }
+        :root { --primary: #4f46e5; --accent: #818cf8; --text: #1e293b; --success: #10b981; }
         body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            margin: 0; padding: 0;
-            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            font-family: system-ui, sans-serif; 
+            margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;
             background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%);
             overflow-x: hidden; 
         }
         .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
-        .nuñez-word { position: absolute; font-weight: 900; opacity: 0.12; animation: moveLeft 18s infinite linear; font-size: 4.5rem; white-space: nowrap; color: white; }
+        .nuñez-word { position: absolute; font-weight: 900; opacity: 0.12; animation: moveLeft 20s infinite linear; font-size: 4rem; color: white; }
         @keyframes moveLeft { 0% { transform: translateX(100vw); } 100% { transform: translateX(-160%); } }
         
         .container { 
             background: rgba(255, 255, 255, 0.95); padding: 1.5rem; border-radius: 24px; 
             width: 88%; max-width: 380px; backdrop-filter: blur(12px); z-index: 10;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
         }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        h2 { margin: 0; color: var(--primary); font-size: 1.3rem; letter-spacing: -0.5px; }
-        .status { font-size: 0.65rem; text-align: center; margin-bottom: 12px; color: #10b981; font-weight: bold; background: #dcfce7; padding: 4px; border-radius: 20px; }
-        .op-fields { background: #f8fafc; padding: 14px; border-radius: 18px; border: 1px solid #f1f5f9; margin-bottom: 10px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        label { font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 4px; display: block; }
-        input { width: 85%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; outline: none; transition: border 0.2s; }
-        input:focus { border-color: var(--accent); }
-        .results { background: #1e293b; color: white; padding: 18px; border-radius: 20px; margin-top: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
-        .precio-final { font-size: 1.8rem; font-weight: 900; color: #a5b4fc; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 12px; margin-top: 12px;}
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        h2 { margin: 0; color: var(--primary); font-size: 1.2rem; }
+        .status { font-size: 0.6rem; text-align: center; margin-bottom: 10px; color: var(--success); font-weight: bold; background: #f0fdf4; padding: 4px; border-radius: 10px; }
+        
+        .op-fields { background: #f8fafc; padding: 12px; border-radius: 18px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        input { width: 85%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
+        
+        /* Estilos del Desglose */
+        .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
+        .desglose-item { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .desglose-item span:last-child { font-weight: bold; color: #cbd5e1; }
+        
+        .precio-final { font-size: 1.6rem; font-weight: 900; color: #a5b4fc; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px;}
         .hidden { display: none !important; }
-        .btn-config { font-size: 1.4rem; padding: 5px; transition: transform 0.3s; cursor: pointer; border: none; background: none; }
-        .btn-config:active { transform: rotate(90deg); }
+        button { cursor: pointer; border: none; background: none; }
     </style>
 </head>
 <body>
@@ -50,18 +53,18 @@
 
 <div class="container">
     <div class="header">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <img src="https://img.icons8.com/fluency/48/n.png" width="28" height="28">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <img src="https://img.icons8.com/fluency/48/n.png" width="24" height="24">
             <h2>NUÑEZ 3D</h2>
         </div>
-        <button class="btn-config" onclick="toggleConfig()">⚙️</button>
+        <button onclick="toggleConfig()" style="font-size:1.2rem;">⚙️</button>
     </div>
-    <div id="syncStatus" class="status">Cargando...</div>
+    <div id="syncStatus" class="status">Sincronizado ☁️</div>
 
     <div class="op-fields">
         <div class="grid">
-            <div><label>Gramos</label><input type="number" id="usedGrams" step="0.1" oninput="calculate(); saveData()"></div>
-            <div><label>Horas</label><input type="number" id="hours" step="0.1" oninput="calculate(); saveData()"></div>
+            <div><label>Gramos</label><input type="number" id="usedGrams" oninput="calculate(); saveData()"></div>
+            <div><label>Horas</label><input type="number" id="hours" oninput="calculate(); saveData()"></div>
         </div>
     </div>
 
@@ -79,11 +82,16 @@
     </div>
 
     <div class="results">
-        <div style="display:flex; justify-content:space-between; font-size:0.8rem; opacity:0.7">
-            <span>Costo + Riesgo:</span> <span id="resBase">$0.00</span>
+        <div class="desglose-item"><span>Filamento:</span> <span id="detMat">$0.00</span></div>
+        <div class="desglose-item"><span>Electricidad:</span> <span id="detEne">$0.00</span></div>
+        <div class="desglose-item"><span>Amortización Máq:</span> <span id="detMch">$0.00</span></div>
+        <div class="desglose-item" style="color:#f87171"><span>Margen de Fallas:</span> <span id="detFail">$0.00</span></div>
+        <div class="desglose-item" style="color:var(--success); border:none; margin-top:5px; font-size:0.8rem;">
+            <span>GANANCIA PURA:</span> <span id="detNet">$0.00</span>
         </div>
+        
         <div class="precio-final">
-            <span style="font-size:1rem; color:#94a3b8">TOTAL:</span>
+            <span style="font-size:0.9rem; color:#94a3b8">TOTAL:</span>
             <span id="precioFinal">$0.00</span>
         </div>
     </div>
@@ -104,53 +112,61 @@
     const db = firebase.database();
     const ids = ['fPrice', 'fWeight', 'usedGrams', 'hours', 'wattage', 'kwhCost', 'machinePrice', 'machineLife', 'failureRate', 'profit'];
 
-    // Sincronización rápida
     db.ref('settings').on('value', (snap) => {
         const data = snap.val();
         if (data) {
             ids.forEach(id => { if(data[id] !== undefined) document.getElementById(id).value = data[id]; });
             calculate();
-            document.getElementById('syncStatus').style.background = "#dcfce7";
-            document.getElementById('syncStatus').innerText = "☁️ Sincronizado";
         }
     });
 
     let timer;
     function saveData() {
-        document.getElementById('syncStatus').innerText = "Guardando...";
-        document.getElementById('syncStatus').style.background = "#fef9c3";
         clearTimeout(timer);
         timer = setTimeout(() => {
             const vals = {};
             ids.forEach(id => vals[id] = parseFloat(document.getElementById(id).value) || 0);
             db.ref('settings').set(vals);
-        }, 800); 
+        }, 800);
     }
 
     function calculate() {
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
+        
+        // 1. Filamento
         const mat = v('fWeight') > 0 ? (v('fPrice') / v('fWeight')) * v('usedGrams') : 0;
+        // 2. Luz
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
+        // 3. Desgaste de máquina (Amortización)
         const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
-        const sub = mat + ene + mch;
-        const base = sub + (sub * (v('failureRate') / 100));
-        const total = base * (1 + v('profit') / 100);
+        
+        const subtotal = mat + ene + mch;
+        // 4. Fallas
+        const fail = subtotal * (v('failureRate') / 100);
+        const totalBase = subtotal + fail;
+        
+        // 5. Ganancia
+        const ganancia = totalBase * (v('profit') / 100);
+        const final = totalBase + ganancia;
 
-        document.getElementById('resBase').innerText = `$${base.toFixed(2)}`;
-        document.getElementById('precioFinal').innerText = `$${total.toFixed(2)}`;
+        // Mostrar desglose
+        document.getElementById('detMat').innerText = `$${mat.toFixed(2)}`;
+        document.getElementById('detEne').innerText = `$${ene.toFixed(2)}`;
+        document.getElementById('detMch').innerText = `$${mch.toFixed(2)}`;
+        document.getElementById('detFail').innerText = `$${fail.toFixed(2)}`;
+        document.getElementById('detNet').innerText = `$${ganancia.toFixed(2)}`;
+        document.getElementById('precioFinal').innerText = `$${final.toFixed(2)}`;
     }
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
 
-    // Generar fondo
-    const bg = document.getElementById('bg');
     for(let i=0; i<8; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word';
         n.innerText = 'NUÑEZ';
         n.style.top = Math.random() * 90 + 'vh';
-        n.style.animationDelay = (Math.random() * -18) + 's';
-        bg.appendChild(n);
+        n.style.animationDelay = (Math.random() * -20) + 's';
+        document.getElementById('bg').appendChild(n);
     }
 </script>
 </body>
