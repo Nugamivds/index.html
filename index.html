@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NUÑEZ 3D - CLOUD PRO</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    
+    <style>
+        :root { --primary: #4f46e5; --accent: #818cf8; --text: #1e293b; }
+        body { 
+            font-family: system-ui, sans-serif; 
+            margin: 0; 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%);
+            overflow: hidden; 
+        }
+        .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .nuñez-word { position: absolute; font-weight: 900; opacity: 0.15; animation: moveLeft 20s infinite linear; font-size: 5rem; white-space: nowrap; }
+        @keyframes moveLeft { 0% { transform: translateX(100vw); } 100% { transform: translateX(-150%); } }
+        
+        .container { 
+            background: rgba(255, 255, 255, 0.96); padding: 2rem; border-radius: 20px; 
+            width: 90%; max-width: 420px; backdrop-filter: blur(10px); z-index: 1;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h2 { margin: 0; color: var(--primary); font-size: 1.4rem; }
+        .status { font-size: 0.65rem; text-align: center; margin-bottom: 10px; color: #10b981; font-weight: bold; }
+        .op-fields { background: #f1f5f9; padding: 15px; border-radius: 15px; margin-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        input { width: 85%; padding: 8px; border: 2px solid #fff; border-radius: 8px; font-size: 1rem; margin-top: 4px; }
+        .results { background: #0f172a; color: white; padding: 20px; border-radius: 18px; margin-top: 15px; }
+        .precio-final { font-size: 1.8rem; font-weight: 900; color: var(--accent); display: flex; justify-content: space-between; border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 10px;}
+        .hidden { display: none !important; }
+        button { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="animated-bg" id="bg"></div>
+
+<div class="container">
+    <div class="header">
+        <h2>NUÑEZ 3D Cloud</h2>
+        <button onclick="toggleConfig()" style="background:none; border:none; font-size:1.5rem;" title="Configuración">⚙️</button>
+    </div>
+    <div id="syncStatus" class="status">Conectando... ☁️</div>
+
+    <div class="op-fields">
+        <div class="grid">
+            <div><label>Gramos</label><input type="number" id="usedGrams" oninput="saveData()"></div>
+            <div><label>Horas</label><input type="number" id="hours" oninput="saveData()"></div>
+        </div>
+    </div>
+
+    <div id="configSection" class="hidden">
+        <div class="grid" style="margin-top:10px">
+            <div><label>Precio Rollo</label><input type="number" id="fPrice" oninput="saveData()"></div>
+            <div><label>Peso Rollo</label><input type="number" id="fWeight" oninput="saveData()"></div>
+            <div><label>Watts</label><input type="number" id="wattage" oninput="saveData()"></div>
+            <div><label>kWh $</label><input type="number" id="kwhCost" oninput="saveData()"></div>
+            <div><label>Precio Máq</label><input type="number" id="machinePrice" oninput="saveData()"></div>
+            <div><label>Vida Útil</label><input type="number" id="machineLife" oninput="saveData()"></div>
+            <div><label>Fallas %</label><input type="number" id="failureRate" oninput="saveData()"></div>
+            <div><label>Ganancia %</label><input type="number" id="profit" oninput="saveData()"></div>
+        </div>
+    </div>
+
+    <div class="results">
+        <div style="display:flex; justify-content:space-between; font-size:0.8rem; opacity:0.8">
+            <span>Costo Base + Riesgo:</span> <span id="resBase">$0.00</span>
+        </div>
+        <div class="precio-final">
+            <span style="font-size:1rem; color:white">PRECIO:</span>
+            <span id="precioFinal">$0.00</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- TUS CREDENCIALES DE FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCx6AkXCmpXArUpaIDd8zZIS3Gav8qRg-o",
+        authDomain: "calculadora-3d-54d4e.firebaseapp.com",
+        databaseURL: "https://calculadora-3d-54d4e-default-rtdb.firebaseio.com",
+        projectId: "calculadora-3d-54d4e",
+        storageBucket: "calculadora-3d-54d4e.firebasestorage.app",
+        messagingSenderId: "454016280906",
+        appId: "1:454016280906:web:431a4edb6a0babfb9a79b3"
+    };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const fields = ['fPrice', 'fWeight', 'usedGrams', 'hours', 'wattage', 'kwhCost', 'machinePrice', 'machineLife', 'failureRate', 'profit'];
+
+    // 1. Sincronización nube -> app (Lee los datos)
+    db.ref('settings').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            fields.forEach(id => {
+                if (data[id] !== undefined) document.getElementById(id).value = data[id];
+            });
+            calculate();
+            document.getElementById('syncStatus').innerText = "Sincronizado ☁️";
+        } else {
+            document.getElementById('syncStatus').innerText = "Listo para usar ☁️";
+        }
+    });
+
+    // 2. Sincronización app -> nube (Guarda los datos)
+    let timer;
+    function saveData() {
+        document.getElementById('syncStatus').innerText = "Guardando...";
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const updates = {};
+            fields.forEach(id => {
+                updates[id] = parseFloat(document.getElementById(id).value) || 0;
+            });
+            db.ref('settings').set(updates);
+            calculate();
+        }, 500); // Espera medio segundo al dejar de teclear
+    }
+
+    // 3. Cálculos matemáticos
+    function calculate() {
+        const v = (id) => parseFloat(document.getElementById(id).value) || 0;
+        
+        // Costos puros
+        const mat = v('fWeight') > 0 ? (v('fPrice') / v('fWeight')) * v('usedGrams') : 0;
+        const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
+        const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
+        
+        // Sumatorias
+        const subtotal = mat + ene + mch;
+        const baseConFallas = subtotal + (subtotal * (v('failureRate') / 100));
+        
+        // El Margen de Ganancia alimenta tu interés compuesto al reinvertir
+        const total = baseConFallas * (1 + v('profit') / 100);
+
+        document.getElementById('resBase').innerText = `$${baseConFallas.toFixed(2)}`;
+        document.getElementById('precioFinal').innerText = `$${total.toFixed(2)}`;
+    }
+
+    // 4. Mostrar/Ocultar configuración
+    function toggleConfig() { 
+        document.getElementById('configSection').classList.toggle('hidden'); 
+    }
+
+    // 5. Animación de fondo NUÑEZ
+    const colors = ['#FF3CAC', '#784BA0', '#2B86C5', '#FFD700', '#ADFF2F'];
+    for(let i=0; i<12; i++) {
+        const n = document.createElement('div');
+        n.className = 'nuñez-word';
+        n.innerText = 'NUÑEZ';
+        n.style.top = Math.random() * 100 + 'vh';
+        n.style.animationDelay = (Math.random() * -20) + 's';
+        n.style.animationDuration = (15 + Math.random() * 10) + 's';
+        n.style.color = colors[Math.floor(Math.random() * colors.length)];
+        document.getElementById('bg').appendChild(n);
+    }
+</script>
+</body>
+</html>
