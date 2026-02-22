@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - DESGLOSE</title>
+    <title>NUÑEZ 3D - COSTOS</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     
     <style>
-        :root { --primary: #4f46e5; --accent: #818cf8; --text: #1e293b; --success: #10b981; }
+        :root { --primary: #4f46e5; --accent: #818cf8; --text: #1e293b; --success: #10b981; --warning: #f59e0b; }
         body { 
             font-family: system-ui, sans-serif; 
             margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;
@@ -37,12 +37,13 @@
         label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
         input { width: 85%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
         
-        /* Estilos del Desglose */
         .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
         .desglose-item { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .desglose-item span:last-child { font-weight: bold; color: #cbd5e1; }
         
-        .precio-final { font-size: 1.6rem; font-weight: 900; color: #a5b4fc; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px;}
+        .costo-total-fab { background: rgba(245, 158, 11, 0.1); padding: 6px 8px; border-radius: 8px; margin: 8px 0; border: 1px dashed var(--warning); color: var(--warning) !important; font-size: 0.8rem; font-weight: bold; display: flex; justify-content: space-between; }
+        
+        .precio-final { font-size: 1.6rem; font-weight: 900; color: #a5b4fc; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 10px; margin-top: 5px;}
         .hidden { display: none !important; }
         button { cursor: pointer; border: none; background: none; }
     </style>
@@ -84,14 +85,20 @@
     <div class="results">
         <div class="desglose-item"><span>Filamento:</span> <span id="detMat">$0.00</span></div>
         <div class="desglose-item"><span>Electricidad:</span> <span id="detEne">$0.00</span></div>
-        <div class="desglose-item"><span>Amortización Máq:</span> <span id="detMch">$0.00</span></div>
-        <div class="desglose-item" style="color:#f87171"><span>Margen de Fallas:</span> <span id="detFail">$0.00</span></div>
-        <div class="desglose-item" style="color:var(--success); border:none; margin-top:5px; font-size:0.8rem;">
+        <div class="desglose-item"><span>Amortización:</span> <span id="detMch">$0.00</span></div>
+        <div class="desglose-item"><span>Margen de Fallas:</span> <span id="detFail">$0.00</span></div>
+        
+        <div class="costo-total-fab">
+            <span>COSTO FABRICACIÓN:</span>
+            <span id="detTotalFab">$0.00</span>
+        </div>
+
+        <div class="desglose-item" style="color:var(--success); border:none; font-size:0.8rem;">
             <span>GANANCIA PURA:</span> <span id="detNet">$0.00</span>
         </div>
         
         <div class="precio-final">
-            <span style="font-size:0.9rem; color:#94a3b8">TOTAL:</span>
+            <span style="font-size:0.9rem; color:#94a3b8">TOTAL VENTA:</span>
             <span id="precioFinal">$0.00</span>
         </div>
     </div>
@@ -133,27 +140,24 @@
     function calculate() {
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
         
-        // 1. Filamento
         const mat = v('fWeight') > 0 ? (v('fPrice') / v('fWeight')) * v('usedGrams') : 0;
-        // 2. Luz
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
-        // 3. Desgaste de máquina (Amortización)
         const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
         
         const subtotal = mat + ene + mch;
-        // 4. Fallas
         const fail = subtotal * (v('failureRate') / 100);
-        const totalBase = subtotal + fail;
         
-        // 5. Ganancia
-        const ganancia = totalBase * (v('profit') / 100);
-        const final = totalBase + ganancia;
+        // El Costo de Fabricación es la suma de todo lo anterior
+        const costoFabricacion = subtotal + fail;
+        
+        const ganancia = costoFabricacion * (v('profit') / 100);
+        const final = costoFabricacion + ganancia;
 
-        // Mostrar desglose
         document.getElementById('detMat').innerText = `$${mat.toFixed(2)}`;
         document.getElementById('detEne').innerText = `$${ene.toFixed(2)}`;
         document.getElementById('detMch').innerText = `$${mch.toFixed(2)}`;
         document.getElementById('detFail').innerText = `$${fail.toFixed(2)}`;
+        document.getElementById('detTotalFab').innerText = `$${costoFabricacion.toFixed(2)}`;
         document.getElementById('detNet').innerText = `$${ganancia.toFixed(2)}`;
         document.getElementById('precioFinal').innerText = `$${final.toFixed(2)}`;
     }
