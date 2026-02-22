@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - CLOUD</title>
+    <title>NUÑEZ 3D</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -14,32 +14,34 @@
     <style>
         :root { --primary: #4f46e5; --accent: #818cf8; --text: #1e293b; }
         body { 
-            font-family: system-ui, sans-serif; 
+            font-family: system-ui, -apple-system, sans-serif; 
             margin: 0; padding: 0;
             display: flex; justify-content: center; align-items: center; min-height: 100vh;
             background: linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%);
             overflow-x: hidden; 
         }
         .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
-        .nuñez-word { position: absolute; font-weight: 900; opacity: 0.15; animation: moveLeft 20s infinite linear; font-size: 4rem; white-space: nowrap; color: white; }
-        @keyframes moveLeft { 0% { transform: translateX(100vw); } 100% { transform: translateX(-150%); } }
+        .nuñez-word { position: absolute; font-weight: 900; opacity: 0.12; animation: moveLeft 18s infinite linear; font-size: 4.5rem; white-space: nowrap; color: white; }
+        @keyframes moveLeft { 0% { transform: translateX(100vw); } 100% { transform: translateX(-160%); } }
         
         .container { 
-            background: rgba(255, 255, 255, 0.96); padding: 1.5rem; border-radius: 20px; 
-            width: 85%; max-width: 400px; backdrop-filter: blur(10px); z-index: 10;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.95); padding: 1.5rem; border-radius: 24px; 
+            width: 88%; max-width: 380px; backdrop-filter: blur(12px); z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
         }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        h2 { margin: 0; color: var(--primary); font-size: 1.2rem; }
-        .status { font-size: 0.7rem; text-align: center; margin-bottom: 10px; color: #10b981; font-weight: bold; }
-        .op-fields { background: #f1f5f9; padding: 12px; border-radius: 15px; margin-bottom: 10px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        label { font-size: 0.65rem; font-weight: 700; color: #64748b; }
-        input { width: 80%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
-        .results { background: #0f172a; color: white; padding: 15px; border-radius: 15px; margin-top: 10px; }
-        .precio-final { font-size: 1.5rem; font-weight: 900; color: var(--accent); display: flex; justify-content: space-between; border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 10px;}
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        h2 { margin: 0; color: var(--primary); font-size: 1.3rem; letter-spacing: -0.5px; }
+        .status { font-size: 0.65rem; text-align: center; margin-bottom: 12px; color: #10b981; font-weight: bold; background: #dcfce7; padding: 4px; border-radius: 20px; }
+        .op-fields { background: #f8fafc; padding: 14px; border-radius: 18px; border: 1px solid #f1f5f9; margin-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        label { font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 4px; display: block; }
+        input { width: 85%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; outline: none; transition: border 0.2s; }
+        input:focus { border-color: var(--accent); }
+        .results { background: #1e293b; color: white; padding: 18px; border-radius: 20px; margin-top: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .precio-final { font-size: 1.8rem; font-weight: 900; color: #a5b4fc; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 12px; margin-top: 12px;}
         .hidden { display: none !important; }
-        button { cursor: pointer; border: none; background: none; }
+        .btn-config { font-size: 1.4rem; padding: 5px; transition: transform 0.3s; cursor: pointer; border: none; background: none; }
+        .btn-config:active { transform: rotate(90deg); }
     </style>
 </head>
 <body>
@@ -48,40 +50,40 @@
 
 <div class="container">
     <div class="header">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <img src="https://img.icons8.com/fluency/48/n.png" width="24" height="24">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img src="https://img.icons8.com/fluency/48/n.png" width="28" height="28">
             <h2>NUÑEZ 3D</h2>
         </div>
-        <button onclick="toggleConfig()">⚙️</button>
+        <button class="btn-config" onclick="toggleConfig()">⚙️</button>
     </div>
-    <div id="syncStatus" class="status">Sincronizando... ☁️</div>
+    <div id="syncStatus" class="status">Cargando...</div>
 
     <div class="op-fields">
         <div class="grid">
-            <div><label>Gramos</label><input type="number" id="usedGrams" oninput="saveData()"></div>
-            <div><label>Horas</label><input type="number" id="hours" oninput="saveData()"></div>
+            <div><label>Gramos</label><input type="number" id="usedGrams" step="0.1" oninput="calculate(); saveData()"></div>
+            <div><label>Horas</label><input type="number" id="hours" step="0.1" oninput="calculate(); saveData()"></div>
         </div>
     </div>
 
     <div id="configSection" class="hidden">
         <div class="grid" style="margin-top:10px">
-            <div><label>Precio Rollo</label><input type="number" id="fPrice" oninput="saveData()"></div>
-            <div><label>Peso Rollo</label><input type="number" id="fWeight" oninput="saveData()"></div>
-            <div><label>Watts</label><input type="number" id="wattage" oninput="saveData()"></div>
-            <div><label>kWh $</label><input type="number" id="kwhCost" oninput="saveData()"></div>
-            <div><label>Precio Máq</label><input type="number" id="machinePrice" oninput="saveData()"></div>
-            <div><label>Vida Útil</label><input type="number" id="machineLife" oninput="saveData()"></div>
-            <div><label>Fallas %</label><input type="number" id="failureRate" oninput="saveData()"></div>
-            <div><label>Ganancia %</label><input type="number" id="profit" oninput="saveData()"></div>
+            <div><label>Precio Rollo</label><input type="number" id="fPrice" oninput="calculate(); saveData()"></div>
+            <div><label>Peso Rollo</label><input type="number" id="fWeight" oninput="calculate(); saveData()"></div>
+            <div><label>Watts</label><input type="number" id="wattage" oninput="calculate(); saveData()"></div>
+            <div><label>kWh $</label><input type="number" id="kwhCost" oninput="calculate(); saveData()"></div>
+            <div><label>Precio Máq</label><input type="number" id="machinePrice" oninput="calculate(); saveData()"></div>
+            <div><label>Vida Útil</label><input type="number" id="machineLife" oninput="calculate(); saveData()"></div>
+            <div><label>Fallas %</label><input type="number" id="failureRate" oninput="calculate(); saveData()"></div>
+            <div><label>Ganancia %</label><input type="number" id="profit" oninput="calculate(); saveData()"></div>
         </div>
     </div>
 
     <div class="results">
-        <div style="display:flex; justify-content:space-between; font-size:0.75rem; opacity:0.8">
-            <span>Costo Total:</span> <span id="resBase">$0.00</span>
+        <div style="display:flex; justify-content:space-between; font-size:0.8rem; opacity:0.7">
+            <span>Costo + Riesgo:</span> <span id="resBase">$0.00</span>
         </div>
         <div class="precio-final">
-            <span style="font-size:0.9rem; color:white">TOTAL:</span>
+            <span style="font-size:1rem; color:#94a3b8">TOTAL:</span>
             <span id="precioFinal">$0.00</span>
         </div>
     </div>
@@ -102,24 +104,27 @@
     const db = firebase.database();
     const ids = ['fPrice', 'fWeight', 'usedGrams', 'hours', 'wattage', 'kwhCost', 'machinePrice', 'machineLife', 'failureRate', 'profit'];
 
+    // Sincronización rápida
     db.ref('settings').on('value', (snap) => {
         const data = snap.val();
         if (data) {
             ids.forEach(id => { if(data[id] !== undefined) document.getElementById(id).value = data[id]; });
             calculate();
-            document.getElementById('syncStatus').innerText = "En línea ☁️";
+            document.getElementById('syncStatus').style.background = "#dcfce7";
+            document.getElementById('syncStatus').innerText = "☁️ Sincronizado";
         }
     });
 
     let timer;
     function saveData() {
         document.getElementById('syncStatus').innerText = "Guardando...";
+        document.getElementById('syncStatus').style.background = "#fef9c3";
         clearTimeout(timer);
         timer = setTimeout(() => {
             const vals = {};
             ids.forEach(id => vals[id] = parseFloat(document.getElementById(id).value) || 0);
             db.ref('settings').set(vals);
-        }, 500);
+        }, 800); 
     }
 
     function calculate() {
@@ -137,14 +142,15 @@
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
 
-    // Fondo animado
-    for(let i=0; i<10; i++) {
+    // Generar fondo
+    const bg = document.getElementById('bg');
+    for(let i=0; i<8; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word';
         n.innerText = 'NUÑEZ';
-        n.style.top = Math.random() * 100 + 'vh';
-        n.style.animationDelay = (Math.random() * -20) + 's';
-        document.getElementById('bg').appendChild(n);
+        n.style.top = Math.random() * 90 + 'vh';
+        n.style.animationDelay = (Math.random() * -18) + 's';
+        bg.appendChild(n);
     }
 </script>
 </body>
