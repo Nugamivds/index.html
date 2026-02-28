@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - COSTOS</title>
+    <title>NUÑEZ 3D - PRO</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -79,6 +79,7 @@
             <div><label>Vida Útil</label><input type="number" id="machineLife" oninput="calculate(); saveData()"></div>
             <div><label>Fallas %</label><input type="number" id="failureRate" oninput="calculate(); saveData()"></div>
             <div><label>Ganancia %</label><input type="number" id="profit" oninput="calculate(); saveData()"></div>
+            <div style="grid-column: span 2;"><label>Items Extra $ (Argollas, etc)</label><input type="number" id="extraItems" oninput="calculate(); saveData()" style="width: 93%;"></div>
         </div>
     </div>
 
@@ -87,6 +88,7 @@
         <div class="desglose-item"><span>Electricidad:</span> <span id="detEne">$0.00</span></div>
         <div class="desglose-item"><span>Amortización:</span> <span id="detMch">$0.00</span></div>
         <div class="desglose-item"><span>Margen de Fallas:</span> <span id="detFail">$0.00</span></div>
+        <div class="desglose-item"><span>Items Extra:</span> <span id="detExtra">$0.00</span></div>
         
         <div class="costo-total-fab">
             <span>COSTO FABRICACIÓN:</span>
@@ -117,7 +119,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const ids = ['fPrice', 'fWeight', 'usedGrams', 'hours', 'wattage', 'kwhCost', 'machinePrice', 'machineLife', 'failureRate', 'profit'];
+    const ids = ['fPrice', 'fWeight', 'usedGrams', 'hours', 'wattage', 'kwhCost', 'machinePrice', 'machineLife', 'failureRate', 'profit', 'extraItems'];
 
     db.ref('settings').on('value', (snap) => {
         const data = snap.val();
@@ -143,12 +145,13 @@
         const mat = v('fWeight') > 0 ? (v('fPrice') / v('fWeight')) * v('usedGrams') : 0;
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
         const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
+        const extras = v('extraItems');
         
         const subtotal = mat + ene + mch;
         const fail = subtotal * (v('failureRate') / 100);
         
-        // El Costo de Fabricación es la suma de todo lo anterior
-        const costoFabricacion = subtotal + fail;
+        // Sumamos los Items Extra al Costo de Fabricación
+        const costoFabricacion = subtotal + fail + extras;
         
         const ganancia = costoFabricacion * (v('profit') / 100);
         const final = costoFabricacion + ganancia;
@@ -157,6 +160,7 @@
         document.getElementById('detEne').innerText = `$${ene.toFixed(2)}`;
         document.getElementById('detMch').innerText = `$${mch.toFixed(2)}`;
         document.getElementById('detFail').innerText = `$${fail.toFixed(2)}`;
+        document.getElementById('detExtra').innerText = `$${extras.toFixed(2)}`;
         document.getElementById('detTotalFab').innerText = `$${costoFabricacion.toFixed(2)}`;
         document.getElementById('detNet').innerText = `$${ganancia.toFixed(2)}`;
         document.getElementById('precioFinal').innerText = `$${final.toFixed(2)}`;
