@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - CAPITAL PRO</title>
+    <title>NUÑEZ 3D - UNITARIO</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -36,9 +36,10 @@
         label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
         input { width: 85%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
         
-        /* Resultados y Capital */
         .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
         .desglose-item { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .unitario-row { background: rgba(165, 180, 252, 0.1); padding: 5px 8px; border-radius: 5px; margin: 4px 0; border-left: 3px solid var(--accent); }
+
         .costo-total-fab { background: rgba(245, 158, 11, 0.1); padding: 6px 8px; border-radius: 8px; margin: 8px 0; border: 1px dashed var(--warning); color: var(--warning); font-size: 0.8rem; font-weight: bold; display: flex; justify-content: space-between; }
         
         .capital-card { background: white; border-radius: 20px; padding: 15px; width: 88%; max-width: 380px; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index: 10;}
@@ -85,10 +86,12 @@
 
     <div class="op-fields">
         <label>Nombre del Proyecto</label>
-        <input type="text" id="projName" placeholder="Ej: Llavero Batman" style="width: 93%; margin-bottom: 10px;">
+        <input type="text" id="projName" placeholder="Ej: Llaveros Logo X" style="width: 93%; margin-bottom: 10px;">
         <div class="grid">
-            <div><label>Gramos</label><input type="number" id="usedGrams" oninput="calculate(); saveData()"></div>
-            <div><label>Horas</label><input type="number" id="hours" oninput="calculate(); saveData()"></div>
+            <div><label>Gramos (Total)</label><input type="number" id="usedGrams" oninput="calculate(); saveData()"></div>
+            <div><label>Horas (Total)</label><input type="number" id="hours" oninput="calculate(); saveData()"></div>
+            <div><label>Cant. Items</label><input type="number" id="itemQty" value="1" oninput="calculate(); saveData()"></div>
+            <div><label>Items Extra $</label><input type="number" id="extraItems" oninput="calculate(); saveData()"></div>
         </div>
     </div>
 
@@ -102,24 +105,24 @@
             <div><label>Vida Útil</label><input type="number" id="machineLife" oninput="calculate(); saveData()"></div>
             <div><label>Fallas %</label><input type="number" id="failureRate" oninput="calculate(); saveData()"></div>
             <div><label>Ganancia %</label><input type="number" id="profit" oninput="calculate(); saveData()"></div>
-            <div style="grid-column: span 2;"><label>Items Extra $</label><input type="number" id="extraItems" oninput="calculate(); saveData()" style="width: 93%;"></div>
         </div>
     </div>
 
     <div class="results">
-        <div class="desglose-item"><span>Filamento:</span> <span id="detMat">$0.00</span></div>
-        <div class="desglose-item"><span>Luz + Máquina:</span> <span id="detUtility">$0.00</span></div>
-        <div class="desglose-item"><span>Extras:</span> <span id="detExtra">$0.00</span></div>
+        <div class="desglose-item"><span>Costo Filamento:</span> <span id="detMat">$0.00</span></div>
+        <div class="desglose-item"><span>Costo Fab. Total:</span> <span id="detTotalFab">$0.00</span></div>
         
-        <div class="costo-total-fab">
-            <span>COSTO FABRICACIÓN:</span>
-            <span id="detTotalFab">$0.00</span>
+        <div class="unitario-row">
+            <div class="desglose-item" style="border:none"><span>Costo por Unidad:</span> <span id="unitCost" style="color:var(--accent)">$0.00</span></div>
+            <div class="desglose-item" style="border:none"><span>Venta por Unidad:</span> <span id="unitSale" style="color:white">$0.00</span></div>
         </div>
-        <div class="desglose-item" style="color:var(--success); border:none; font-size:0.8rem;">
-            <span>GANANCIA PURA:</span> <span id="detNet">$0.00</span>
+
+        <div class="desglose-item" style="color:var(--success); border:none; font-size:0.8rem; margin-top:5px;">
+            <span>GANANCIA TOTAL TANDA:</span> <span id="detNet">$0.00</span>
         </div>
+        
         <div style="font-size: 1.6rem; font-weight: 900; color: #a5b4fc; display: flex; justify-content: space-between; border-top: 1px solid #334155; padding-top: 10px; margin-top: 5px;">
-            <span style="font-size:0.9rem; color:#94a3b8">VENTA:</span>
+            <span style="font-size:0.9rem; color:#94a3b8">TOTAL VENTA:</span>
             <span id="precioFinal">$0.00</span>
         </div>
 
@@ -128,7 +131,7 @@
 </div>
 
 <div class="history">
-    <div style="font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid var(--primary);">Historial de Ventas</div>
+    <div style="font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid var(--primary);">Últimas Ventas</div>
     <div id="salesList"></div>
 </div>
 
@@ -145,9 +148,8 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const ids = ['fPrice', 'fWeight', 'usedGrams', 'hours', 'wattage', 'kwhCost', 'machinePrice', 'machineLife', 'failureRate', 'profit', 'extraItems'];
+    const ids = ['fPrice', 'fWeight', 'usedGrams', 'hours', 'wattage', 'kwhCost', 'machinePrice', 'machineLife', 'failureRate', 'profit', 'extraItems', 'itemQty'];
 
-    // Sincronización Inicial
     db.ref('settings').on('value', (snap) => {
         const data = snap.val();
         if (data) ids.forEach(id => { if(data[id] !== undefined) document.getElementById(id).value = data[id]; });
@@ -167,7 +169,7 @@
         snap.forEach(child => { sales.unshift(child.val()); });
         sales.forEach(s => {
             list.innerHTML += `<div class="history-item">
-                <span><b>${s.date}</b><br>${s.name}</span>
+                <span><b>${s.date}</b><br>${s.qty || 1}x ${s.name}</span>
                 <span style="text-align:right">$${s.total}<br><small style="color:var(--success)">+$${s.net}</small></span>
             </div>`;
         });
@@ -185,44 +187,48 @@
 
     function calculate() {
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const qty = v('itemQty') || 1;
+        
         const mat = v('fWeight') > 0 ? (v('fPrice') / v('fWeight')) * v('usedGrams') : 0;
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
         const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
         const sub = mat + ene + mch;
         const fail = sub * (v('failureRate') / 100);
-        const fab = sub + fail + v('extraItems');
-        const net = fab * (v('profit') / 100);
-        const total = fab + net;
+        
+        const fabTotal = sub + fail + v('extraItems');
+        const netTotal = fabTotal * (v('profit') / 100);
+        const totalVenta = fabTotal + netTotal;
 
+        // Mostrar totales
         document.getElementById('detMat').innerText = `$${mat.toFixed(2)}`;
-        document.getElementById('detUtility').innerText = `$${(ene + mch + fail).toFixed(2)}`;
-        document.getElementById('detExtra').innerText = `$${v('extraItems').toFixed(2)}`;
-        document.getElementById('detTotalFab').innerText = `$${fab.toFixed(2)}`;
-        document.getElementById('detNet').innerText = `$${net.toFixed(2)}`;
-        document.getElementById('precioFinal').innerText = `$${total.toFixed(2)}`;
-        return { fab, net, total };
+        document.getElementById('detTotalFab').innerText = `$${fabTotal.toFixed(2)}`;
+        document.getElementById('detNet').innerText = `$${netTotal.toFixed(2)}`;
+        document.getElementById('precioFinal').innerText = `$${totalVenta.toFixed(2)}`;
+
+        // Mostrar unitarios
+        document.getElementById('unitCost').innerText = `$${(fabTotal / qty).toFixed(2)}`;
+        document.getElementById('unitSale').innerText = `$${(totalVenta / qty).toFixed(2)}`;
+        
+        return { fab: fabTotal, net: netTotal, total: totalVenta, qty };
     }
 
     function registerSale() {
-        const { fab, net, total } = calculate();
-        const name = document.getElementById('projName').value || "Proyecto sin nombre";
+        const { fab, net, total, qty } = calculate();
+        const name = document.getElementById('projName').value || "Proyecto";
         const date = new Date().toLocaleDateString();
 
-        // 1. Guardar en Historial
-        db.ref('sales').push({ name, date, fab, net, total });
-
-        // 2. Sumar al Capital Acumulado
+        db.ref('sales').push({ name, date, fab, net, total, qty });
         db.ref('capital').transaction((current) => {
             if (!current) current = { fab: 0, net: 0 };
             return { fab: current.fab + fab, net: current.net + net };
         });
 
         document.getElementById('projName').value = "";
-        alert("¡Venta registrada con éxito!");
+        alert("¡Venta de " + qty + " unidad(es) registrada!");
     }
 
     function resetCapital() {
-        if(confirm("¿Seguro que quieres reiniciar el capital acumulado?")) db.ref('capital').set({ fab: 0, net: 0 });
+        if(confirm("¿Reiniciar capital?")) db.ref('capital').set({ fab: 0, net: 0 });
     }
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
