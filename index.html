@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - VALOR VENTA</title>
+    <title>NUÑEZ 3D - VENTA REAL</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -23,28 +23,27 @@
         @keyframes moveLeft { 0% { transform: translateX(100vw); } 100% { transform: translateX(-160%); } }
         
         .container, .capital-card, .history { 
-            background: rgba(255, 255, 255, 0.95); padding: 1.5rem; border-radius: 24px; 
+            background: rgba(255, 255, 255, 0.95); padding: 1.2rem; border-radius: 24px; 
             width: 88%; max-width: 380px; backdrop-filter: blur(12px); z-index: 10;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2); margin-bottom: 20px;
         }
         
-        h2 { margin: 0; color: var(--primary); font-size: 1.2rem; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        h2 { margin: 0; color: var(--primary); font-size: 1.1rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        label { font-size: 0.6rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
         input { width: 85%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; outline: none; }
+        
+        /* Sección de Venta */
+        .sale-input-box { background: #eff6ff; padding: 12px; border-radius: 15px; border: 2px solid var(--accent); margin-top: 10px; }
         
         .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
         .desglose-item { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .unitario-row { background: rgba(165, 180, 252, 0.1); padding: 8px; border-radius: 12px; margin: 8px 0; border-left: 4px solid var(--accent); }
         
         .cap-input { width: 80%; border: none; background: #f1f5f9; font-size: 1rem; font-weight: 900; text-align: center; padding: 6px; border-radius: 8px; color: inherit; }
-        
         .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        .btn-edit-mode { background: var(--warning) !important; }
-        .btn-cancel { background: #64748b; color: white; border: none; padding: 8px; width: 100%; border-radius: 10px; margin-top: 5px; font-size: 0.7rem; cursor: pointer;}
-
-        .history-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-        .action-btn { font-size: 1rem; cursor: pointer; border: none; background: none; }
+        
+        .history-item { border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        .action-btn { font-size: 0.9rem; cursor: pointer; border: none; background: none; }
         
         .hidden { display: none !important; }
     </style>
@@ -54,7 +53,7 @@
 <div class="animated-bg" id="bg"></div>
 
 <div class="capital-card">
-    <div style="text-align: center; font-weight: 900; font-size: 0.8rem; margin-bottom: 10px;">💸 CAPITAL ACUMULADO</div>
+    <div style="text-align: center; font-weight: 900; font-size: 0.75rem; margin-bottom: 8px;">💸 CAPITAL ACUMULADO</div>
     <div class="grid">
         <div style="color: var(--warning); text-align: center;">
             <label style="font-size: 0.5rem;">REINVERSIÓN</label>
@@ -65,61 +64,58 @@
             <input type="number" id="capNetInput" class="cap-input">
         </div>
     </div>
-    <button onclick="updateCapitalManually()" style="font-size: 0.6rem; width: 100%; margin-top: 10px; color: #94a3b8; text-decoration: underline;">💾 Guardar Ajuste Manual</button>
+    <button onclick="updateCapitalManually()" style="font-size: 0.55rem; width: 100%; margin-top: 8px; color: #94a3b8; border: none; background: none; cursor: pointer;">💾 Guardar Ajuste Manual</button>
 </div>
 
 <div class="container">
-    <div class="header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <img src="https://img.icons8.com/fluency/48/n.png" width="24" height="24">
-            <h2 id="formTitle">NUEVA VENTA</h2>
-        </div>
-        <button onclick="toggleConfig()" style="font-size:1.2rem; background:none; border:none; cursor:pointer;">⚙️</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 id="formTitle">NUEVA VENTA</h2>
+        <button onclick="toggleConfig()" style="font-size:1.2rem;">⚙️</button>
     </div>
 
-    <div class="op-fields" style="background: #f8fafc; padding: 12px; border-radius: 18px; margin-bottom: 10px;">
-        <label>Proyecto</label>
-        <input type="text" id="projName" placeholder="Ej: 10 Llaveros Batman" style="width: 93%; margin-bottom: 8px;">
+    <div style="background: #f8fafc; padding: 12px; border-radius: 18px;">
+        <label>Nombre del Proyecto</label>
+        <input type="text" id="projName" placeholder="Ej: 10 Llaveros" style="width: 93%; margin-bottom: 8px;">
+        
         <div class="grid">
-            <div><label>Gramos</label><input type="number" id="usedGrams" oninput="calculate();"></div>
-            <div><label>Horas</label><input type="number" id="hours" oninput="calculate();"></div>
-            <div><label>Cantidad (Items)</label><input type="number" id="itemQty" value="1" oninput="calculate();"></div>
-            <div><label>Extras (Venta Total)</label><input type="number" id="extraItems" oninput="calculate();"></div>
+            <div><label>Gramos Totales</label><input type="number" id="usedGrams" oninput="calculate()"></div>
+            <div><label>Horas Totales</label><input type="number" id="hours" oninput="calculate()"></div>
+            <div><label>Cant. Items</label><input type="number" id="itemQty" value="1" oninput="calculate()"></div>
+            <div><label>Costo Extras</label><input type="number" id="extraItems" oninput="calculate()" placeholder="Argollas, etc"></div>
+        </div>
+
+        <div class="sale-input-box">
+            <label style="color: var(--primary)">Precio Venta Unitario ($)</label>
+            <input type="number" id="saleUnitPrice" value="2000" oninput="calculate()" style="width: 93%; font-size: 1.2rem; font-weight: 900; border-color: var(--accent);">
         </div>
     </div>
 
-    <div id="configSection" class="hidden">
-        <div class="grid" style="margin-top:10px; background: #eee; padding: 10px; border-radius: 10px;">
-            <div><label>Precio Rollo</label><input type="number" id="fPrice" oninput="calculate();"></div>
-            <div><label>Watts</label><input type="number" id="wattage" oninput="calculate();"></div>
-            <div><label>Precio Máq</label><input type="number" id="machinePrice" oninput="calculate();"></div>
-            <div><label>Vida Útil (h)</label><input type="number" id="machineLife" oninput="calculate();"></div>
-            <div><label>kWh $</label><input type="number" id="kwhCost" oninput="calculate();"></div>
-            <div><label>Ganancia %</label><input type="number" id="profit" oninput="calculate();"></div>
+    <div id="configSection" class="hidden" style="margin-top: 10px; padding: 10px; background: #eee; border-radius: 10px;">
+        <div class="grid">
+            <div><label>Precio Rollo</label><input type="number" id="fPrice" oninput="calculate()"></div>
+            <div><label>Precio Máq</label><input type="number" id="machinePrice" oninput="calculate()"></div>
+            <div><label>Vida Útil h</label><input type="number" id="machineLife" oninput="calculate()"></div>
+            <div><label>kWh $</label><input type="number" id="kwhCost" oninput="calculate()"></div>
+            <div><label>Watts</label><input type="number" id="wattage" oninput="calculate()"></div>
         </div>
     </div>
 
     <div class="results">
-        <div class="unitario-row">
-            <div class="desglose-item" style="border:none"><span>Precio Unitario:</span> <span id="unitSale" style="color:var(--accent); font-weight:900; font-size:1.1rem;">$0.00</span></div>
-            <div class="desglose-item" style="border:none; font-size:0.65rem; opacity:0.8;"><span>Extra Unitario:</span> <span id="unitExtra">$0.00</span></div>
-        </div>
+        <div class="desglose-item"><span>Total Cobrado:</span> <span id="resTotalVenta" style="font-weight:900">$0.00</span></div>
+        <div class="desglose-item"><span>(-) Costo Fab. Total:</span> <span id="resCostoFab" style="color:var(--warning)">$0.00</span></div>
         
-        <div class="desglose-item"><span>Costo Fab. (Impresión):</span> <span id="detFabPrint">$0.00</span></div>
-        <div class="desglose-item"><span>Valor Venta Extras:</span> <span id="detExtraTotal">$0.00</span></div>
-        <div class="desglose-item" style="color:var(--success); border:none; padding-top:8px;"><span>GANANCIA PURA:</span> <span id="detNet">$0.00</span></div>
-        
-        <div style="font-size: 1.6rem; font-weight: 900; color: #a5b4fc; display: flex; justify-content: space-between; border-top: 1px solid #334155; margin-top: 8px; padding-top: 8px;">
-            <span style="font-size:0.8rem; color:#94a3b8">VENTA TOTAL:</span> <span id="precioFinal">$0.00</span>
+        <div style="font-size: 1.4rem; font-weight: 900; color: var(--success); display: flex; justify-content: space-between; border-top: 1px solid #334155; margin-top: 8px; padding-top: 8px;">
+            <span style="font-size:0.8rem; color:#94a3b8">GANANCIA PURA:</span> <span id="resNet">$0.00</span>
         </div>
+        <div style="font-size:0.65rem; text-align:right; opacity:0.7; margin-top:5px;">Ganancia por unidad: <span id="resNetUnit">$0.00</span></div>
 
         <button id="btnMain" class="btn-reg" onclick="handleSaleAction()">🚀 REGISTRAR VENTA</button>
-        <button id="btnCancel" class="btn-cancel hidden" onclick="cancelEdit()">CANCELAR EDICIÓN</button>
+        <button id="btnCancel" class="btn-cancel hidden" onclick="cancelEdit()" style="color:white; background: #64748b; width:100%; padding:8px; border-radius:10px; margin-top:5px; border:none; cursor:pointer;">CANCELAR EDICIÓN</button>
     </div>
 </div>
 
 <div class="history">
-    <div style="font-weight: bold; border-bottom: 2px solid var(--primary); margin-bottom: 10px;">HISTORIAL</div>
+    <div style="font-weight: bold; border-bottom: 2px solid var(--primary); margin-bottom: 8px; font-size: 0.8rem;">HISTORIAL DE VENTAS</div>
     <div id="salesList"></div>
 </div>
 
@@ -138,7 +134,7 @@
     
     let editingKey = null;
     let oldSaleData = null;
-    const ids = ['fPrice', 'usedGrams', 'hours', 'wattage', 'machinePrice', 'machineLife', 'kwhCost', 'profit', 'extraItems', 'itemQty'];
+    const ids = ['fPrice', 'usedGrams', 'hours', 'wattage', 'machinePrice', 'machineLife', 'kwhCost', 'extraItems', 'itemQty', 'saleUnitPrice'];
 
     db.ref('settings').on('value', snap => {
         const d = snap.val();
@@ -161,9 +157,9 @@
                 <div class="history-item">
                     <div style="font-size: 0.7rem;">
                         <b>${s.name}</b> (${s.qty}u)<br>
-                        <span style="color:var(--success)">+$${s.net}</span> | Total: $${s.total}
+                        Neto: <span style="color:var(--success)">$${s.net.toFixed(2)}</span> | Bruto: $${s.total.toFixed(2)}
                     </div>
-                    <div style="display:flex; gap:10px;">
+                    <div style="display:flex; gap:8px;">
                         <button class="action-btn" onclick="prepareEdit('${child.key}')">✏️</button>
                         <button class="action-btn" onclick="deleteSale('${child.key}')">🗑️</button>
                     </div>
@@ -176,32 +172,24 @@
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
         const qty = v('itemQty') || 1;
         
-        // 1. Costo Base Impresión
+        // 1. COSTO DE FABRICACIÓN (Lo que hay que reinvertir)
         const mat = (v('fPrice') / 1000) * v('usedGrams');
         const mch = (v('machinePrice') / v('machineLife')) * v('hours');
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
-        const fabPrint = mat + mch + ene; 
+        const fabTotal = mat + mch + ene + v('extraItems');
         
-        // 2. Ganancia Pura (Solo sobre la impresión)
-        const net = fabPrint * (v('profit') / 100);
+        // 2. VENTA REAL
+        const totalVenta = v('saleUnitPrice') * qty;
         
-        // 3. Extras (Valor de Venta Directo)
-        const extrasTotal = v('extraItems');
-        const extraUnitario = extrasTotal / qty;
-        
-        // 4. Totales Finales
-        const totalVenta = fabPrint + net + extrasTotal;
-        const unitSale = totalVenta / qty;
+        // 3. GANANCIA PURA (Venta - Costo)
+        const gananciaNeta = totalVenta - fabTotal;
 
-        document.getElementById('detFabPrint').innerText = `$${fabPrint.toFixed(2)}`;
-        document.getElementById('detExtraTotal').innerText = `$${extrasTotal.toFixed(2)}`;
-        document.getElementById('detNet').innerText = `$${net.toFixed(2)}`;
-        document.getElementById('precioFinal').innerText = `$${totalVenta.toFixed(2)}`;
+        document.getElementById('resTotalVenta').innerText = `$${totalVenta.toFixed(2)}`;
+        document.getElementById('resCostoFab').innerText = `$${fabTotal.toFixed(2)}`;
+        document.getElementById('resNet').innerText = `$${gananciaNeta.toFixed(2)}`;
+        document.getElementById('resNetUnit').innerText = `$${(gananciaNeta / qty).toFixed(2)}`;
         
-        document.getElementById('unitSale').innerText = `$${unitSale.toFixed(2)}`;
-        document.getElementById('unitExtra').innerText = `$${extraUnitario.toFixed(2)}`;
-        
-        return { fab: fabPrint + extrasTotal, net: net, total: totalVenta, name: document.getElementById('projName').value, qty: qty };
+        return { fab: fabTotal, net: gananciaNeta, total: totalVenta, name: document.getElementById('projName').value, qty: qty };
     }
 
     function handleSaleAction() {
@@ -223,9 +211,13 @@
                 c.fab += data.fab; c.net += data.net;
                 return c;
             });
+            // Guardar settings
+            const vals = {};
+            ids.forEach(id => vals[id] = parseFloat(document.getElementById(id).value) || 0);
+            db.ref('settings').set(vals);
             document.getElementById('projName').value = "";
         }
-        alert("Operación realizada con éxito");
+        alert("¡Venta guardada!");
     }
 
     function prepareEdit(key) {
@@ -235,17 +227,18 @@
             editingKey = key;
             document.getElementById('projName').value = s.name;
             document.getElementById('itemQty').value = s.qty;
-            // Los otros valores se recalculan con los inputs actuales
+            document.getElementById('saleUnitPrice').value = s.total / s.qty;
+            
             document.getElementById('btnMain').innerText = "💾 GUARDAR CAMBIOS";
-            document.getElementById('btnMain').classList.add('btn-edit-mode');
             document.getElementById('btnCancel').classList.remove('hidden');
             document.getElementById('formTitle').innerText = "EDITANDO VENTA";
             window.scrollTo(0,0);
+            calculate();
         });
     }
 
     function deleteSale(key) {
-        if(confirm("¿Borrar venta? Se ajustará el capital.")) {
+        if(confirm("¿Borrar venta?")) {
             db.ref('sales/' + key).once('value', snap => {
                 const s = snap.val();
                 db.ref('capital').transaction(c => {
@@ -258,11 +251,9 @@
     }
 
     function cancelEdit() {
-        editingKey = null;
-        oldSaleData = null;
+        editingKey = null; oldSaleData = null;
         document.getElementById('projName').value = "";
         document.getElementById('btnMain').innerText = "🚀 REGISTRAR VENTA";
-        document.getElementById('btnMain').classList.remove('btn-edit-mode');
         document.getElementById('btnCancel').classList.add('hidden');
         document.getElementById('formTitle').innerText = "NUEVA VENTA";
     }
@@ -275,6 +266,7 @@
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
     
+    // BG
     for(let i=0; i<6; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word'; n.innerText = 'NUÑEZ';
