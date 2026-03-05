@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - VENTA REAL</title>
+    <title>NUÑEZ 3D - ASISTENTE DE PRECIOS</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -35,6 +35,7 @@
         
         /* Sección de Venta */
         .sale-input-box { background: #eff6ff; padding: 12px; border-radius: 15px; border: 2px solid var(--accent); margin-top: 10px; }
+        .suggested-price-bar { background: rgba(245, 158, 11, 0.15); padding: 8px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed var(--warning); }
         
         .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
         .desglose-item { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -64,13 +65,13 @@
             <input type="number" id="capNetInput" class="cap-input">
         </div>
     </div>
-    <button onclick="updateCapitalManually()" style="font-size: 0.55rem; width: 100%; margin-top: 8px; color: #94a3b8; border: none; background: none; cursor: pointer;">💾 Guardar Ajuste Manual</button>
+    <button onclick="updateCapitalManually()" style="font-size: 0.55rem; width: 100%; margin-top: 8px; color: #94a3b8; border: none; background: none; cursor: pointer; text-decoration: underline;">💾 Guardar Ajuste Manual</button>
 </div>
 
 <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h2 id="formTitle">NUEVA VENTA</h2>
-        <button onclick="toggleConfig()" style="font-size:1.2rem;">⚙️</button>
+        <button onclick="toggleConfig()" style="font-size:1.2rem; cursor:pointer; background:none; border:none;">⚙️</button>
     </div>
 
     <div style="background: #f8fafc; padding: 12px; border-radius: 18px;">
@@ -81,22 +82,28 @@
             <div><label>Gramos Totales</label><input type="number" id="usedGrams" oninput="calculate()"></div>
             <div><label>Horas Totales</label><input type="number" id="hours" oninput="calculate()"></div>
             <div><label>Cant. Items</label><input type="number" id="itemQty" value="1" oninput="calculate()"></div>
-            <div><label>Costo Extras</label><input type="number" id="extraItems" oninput="calculate()" placeholder="Argollas, etc"></div>
+            <div><label>Costo Extras</label><input type="number" id="extraItems" oninput="calculate()" placeholder="Argollas"></div>
         </div>
 
         <div class="sale-input-box">
-            <label style="color: var(--primary)">Precio Venta Unitario ($)</label>
-            <input type="number" id="saleUnitPrice" value="2000" oninput="calculate()" style="width: 93%; font-size: 1.2rem; font-weight: 900; border-color: var(--accent);">
+            <div class="suggested-price-bar">
+                <span style="font-size: 0.65rem; font-weight: bold; color: #b45309;">💡 PRECIO SUGERIDO<br>(UNITARIO)</span>
+                <span id="suggestedPrice" style="color: #b45309; font-weight: 900; font-size: 1.1rem;">$0.00</span>
+            </div>
+            
+            <label style="color: var(--primary)">Tu Precio de Venta (Unitario)</label>
+            <input type="number" id="saleUnitPrice" value="2000" oninput="calculate()" style="width: 93%; font-size: 1.2rem; font-weight: 900; border-color: var(--accent); color: var(--text);">
         </div>
     </div>
 
     <div id="configSection" class="hidden" style="margin-top: 10px; padding: 10px; background: #eee; border-radius: 10px;">
         <div class="grid">
+            <div><label>Ganancia Sugerida %</label><input type="number" id="profit" oninput="calculate()" value="200"></div>
             <div><label>Precio Rollo</label><input type="number" id="fPrice" oninput="calculate()"></div>
             <div><label>Precio Máq</label><input type="number" id="machinePrice" oninput="calculate()"></div>
             <div><label>Vida Útil h</label><input type="number" id="machineLife" oninput="calculate()"></div>
             <div><label>kWh $</label><input type="number" id="kwhCost" oninput="calculate()"></div>
-            <div><label>Watts</label><input type="number" id="wattage" oninput="calculate()"></div>
+            <div><label>Watts Máq</label><input type="number" id="wattage" oninput="calculate()"></div>
         </div>
     </div>
 
@@ -134,7 +141,8 @@
     
     let editingKey = null;
     let oldSaleData = null;
-    const ids = ['fPrice', 'usedGrams', 'hours', 'wattage', 'machinePrice', 'machineLife', 'kwhCost', 'extraItems', 'itemQty', 'saleUnitPrice'];
+    // Agregamos 'profit' a la lista para que se guarde el % de ganancia sugerida
+    const ids = ['profit', 'fPrice', 'usedGrams', 'hours', 'wattage', 'machinePrice', 'machineLife', 'kwhCost', 'extraItems', 'itemQty', 'saleUnitPrice'];
 
     db.ref('settings').on('value', snap => {
         const d = snap.val();
@@ -172,18 +180,25 @@
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
         const qty = v('itemQty') || 1;
         
-        // 1. COSTO DE FABRICACIÓN (Lo que hay que reinvertir)
+        // 1. COSTO DE FABRICACIÓN
         const mat = (v('fPrice') / 1000) * v('usedGrams');
         const mch = (v('machinePrice') / v('machineLife')) * v('hours');
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
         const fabTotal = mat + mch + ene + v('extraItems');
         
-        // 2. VENTA REAL
-        const totalVenta = v('saleUnitPrice') * qty;
+        // 2. CÁLCULO DE PRECIO SUGERIDO
+        const profitMargin = v('profit') / 100;
+        const suggestedTotal = fabTotal + (fabTotal * profitMargin);
+        const suggestedUnit = suggestedTotal / qty;
         
-        // 3. GANANCIA PURA (Venta - Costo)
+        // Mostrar Sugerencia
+        document.getElementById('suggestedPrice').innerText = `$${suggestedUnit.toFixed(2)}`;
+
+        // 3. VENTA REAL Y GANANCIA PURA
+        const totalVenta = v('saleUnitPrice') * qty;
         const gananciaNeta = totalVenta - fabTotal;
 
+        // Mostrar Resultados Finales
         document.getElementById('resTotalVenta').innerText = `$${totalVenta.toFixed(2)}`;
         document.getElementById('resCostoFab').innerText = `$${fabTotal.toFixed(2)}`;
         document.getElementById('resNet').innerText = `$${gananciaNeta.toFixed(2)}`;
@@ -211,7 +226,7 @@
                 c.fab += data.fab; c.net += data.net;
                 return c;
             });
-            // Guardar settings
+            // Guardar configuración para no perder los datos
             const vals = {};
             ids.forEach(id => vals[id] = parseFloat(document.getElementById(id).value) || 0);
             db.ref('settings').set(vals);
@@ -238,7 +253,7 @@
     }
 
     function deleteSale(key) {
-        if(confirm("¿Borrar venta?")) {
+        if(confirm("¿Borrar venta? Se restará del capital.")) {
             db.ref('sales/' + key).once('value', snap => {
                 const s = snap.val();
                 db.ref('capital').transaction(c => {
