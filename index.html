@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - ASISTENTE DE PRECIOS</title>
+    <title>NUÑEZ 3D - DESGLOSE DE COSTOS</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -33,13 +33,17 @@
         label { font-size: 0.6rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
         input { width: 85%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; outline: none; }
         
-        /* Sección de Venta */
         .sale-input-box { background: #eff6ff; padding: 12px; border-radius: 15px; border: 2px solid var(--accent); margin-top: 10px; }
         .suggested-price-bar { background: rgba(245, 158, 11, 0.15); padding: 8px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed var(--warning); }
         
         .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
         .desglose-item { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
+        /* Nuevo estilo para el sub-desglose */
+        .sub-desglose { background: rgba(0,0,0,0.25); padding: 10px; border-radius: 10px; margin-bottom: 8px; font-size: 0.65rem; color: #cbd5e1; }
+        .sub-desglose div { display: flex; justify-content: space-between; padding: 3px 0; }
+        .sub-desglose div span:last-child { font-family: monospace; font-size: 0.7rem; }
+
         .cap-input { width: 80%; border: none; background: #f1f5f9; font-size: 1rem; font-weight: 900; text-align: center; padding: 6px; border-radius: 8px; color: inherit; }
         .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
         
@@ -109,7 +113,14 @@
 
     <div class="results">
         <div class="desglose-item"><span>Total Cobrado:</span> <span id="resTotalVenta" style="font-weight:900">$0.00</span></div>
-        <div class="desglose-item"><span>(-) Costo Fab. Total:</span> <span id="resCostoFab" style="color:var(--warning)">$0.00</span></div>
+        <div class="desglose-item" style="border:none;"><span>(-) Costo Fab. Total:</span> <span id="resCostoFab" style="color:var(--warning)">$0.00</span></div>
+        
+        <div class="sub-desglose">
+            <div><span>Filamento:</span> <span id="detFilamento">$0.00</span></div>
+            <div><span>Energía Eléctrica:</span> <span id="detEnergia">$0.00</span></div>
+            <div><span>Desgaste Máquina:</span> <span id="detMaquina">$0.00</span></div>
+            <div><span>Extras (Insumos):</span> <span id="detExtras">$0.00</span></div>
+        </div>
         
         <div style="font-size: 1.4rem; font-weight: 900; color: var(--success); display: flex; justify-content: space-between; border-top: 1px solid #334155; margin-top: 8px; padding-top: 8px;">
             <span style="font-size:0.8rem; color:#94a3b8">GANANCIA PURA:</span> <span id="resNet">$0.00</span>
@@ -141,7 +152,6 @@
     
     let editingKey = null;
     let oldSaleData = null;
-    // Agregamos 'profit' a la lista para que se guarde el % de ganancia sugerida
     const ids = ['profit', 'fPrice', 'usedGrams', 'hours', 'wattage', 'machinePrice', 'machineLife', 'kwhCost', 'extraItems', 'itemQty', 'saleUnitPrice'];
 
     db.ref('settings').on('value', snap => {
@@ -180,25 +190,30 @@
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
         const qty = v('itemQty') || 1;
         
-        // 1. COSTO DE FABRICACIÓN
+        // 1. DESGLOSE DE COSTOS
         const mat = (v('fPrice') / 1000) * v('usedGrams');
-        const mch = (v('machinePrice') / v('machineLife')) * v('hours');
+        const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
-        const fabTotal = mat + mch + ene + v('extraItems');
+        const extras = v('extraItems');
         
+        const fabTotal = mat + mch + ene + extras;
+        
+        // Mostrar Desglose en Pantalla
+        document.getElementById('detFilamento').innerText = `$${mat.toFixed(2)}`;
+        document.getElementById('detEnergia').innerText = `$${ene.toFixed(2)}`;
+        document.getElementById('detMaquina').innerText = `$${mch.toFixed(2)}`;
+        document.getElementById('detExtras').innerText = `$${extras.toFixed(2)}`;
+
         // 2. CÁLCULO DE PRECIO SUGERIDO
         const profitMargin = v('profit') / 100;
         const suggestedTotal = fabTotal + (fabTotal * profitMargin);
         const suggestedUnit = suggestedTotal / qty;
-        
-        // Mostrar Sugerencia
         document.getElementById('suggestedPrice').innerText = `$${suggestedUnit.toFixed(2)}`;
 
         // 3. VENTA REAL Y GANANCIA PURA
         const totalVenta = v('saleUnitPrice') * qty;
         const gananciaNeta = totalVenta - fabTotal;
 
-        // Mostrar Resultados Finales
         document.getElementById('resTotalVenta').innerText = `$${totalVenta.toFixed(2)}`;
         document.getElementById('resCostoFab').innerText = `$${fabTotal.toFixed(2)}`;
         document.getElementById('resNet').innerText = `$${gananciaNeta.toFixed(2)}`;
@@ -226,7 +241,6 @@
                 c.fab += data.fab; c.net += data.net;
                 return c;
             });
-            // Guardar configuración para no perder los datos
             const vals = {};
             ids.forEach(id => vals[id] = parseFloat(document.getElementById(id).value) || 0);
             db.ref('settings').set(vals);
@@ -281,7 +295,6 @@
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
     
-    // BG
     for(let i=0; i<6; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word'; n.innerText = 'NUÑEZ';
