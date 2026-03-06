@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - CONTABILIDAD AVANZADA</title>
+    <title>NUÑEZ 3D - CONTROL TOTAL</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -29,27 +29,24 @@
         }
         
         h2 { margin: 0; color: var(--primary); font-size: 1.1rem; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        label { font-size: 0.6rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        label { font-size: 0.55rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
         input { width: 85%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; outline: none; }
         
-        .sale-input-box { background: #eff6ff; padding: 12px; border-radius: 15px; border: 2px solid var(--accent); margin-top: 10px; }
-        .suggested-price-bar { background: rgba(245, 158, 11, 0.15); padding: 8px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed var(--warning); }
+        /* Estilos de los Sobres de Dinero */
+        .cap-box { background: #f1f5f9; padding: 8px 4px; border-radius: 12px; border: 1px solid #cbd5e1; text-align: center; }
+        .cap-box label { color: var(--warning); font-size: 0.45rem; display: block; margin-bottom: 3px; }
+        .cap-box input { width: 90%; border: none; background: transparent; font-size: 0.8rem; font-weight: 900; text-align: center; padding: 0; color: #1e293b; }
+
+        .net-box { margin-top: 15px; background: #ecfdf5; padding: 10px; border-radius: 15px; border: 2px solid var(--success); text-align: center; }
         
         .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
-        .desglose-item { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .sub-desglose { background: rgba(0,0,0,0.25); padding: 10px; border-radius: 10px; margin-bottom: 8px; font-size: 0.65rem; color: #cbd5e1; }
-        .sub-desglose div { display: flex; justify-content: space-between; padding: 3px 0; }
-        .sub-desglose div span:last-child { font-family: monospace; font-size: 0.7rem; }
+        .sub-desglose { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin: 10px 0; font-size: 0.7rem; }
+        .sub-desglose div { display: flex; justify-content: space-between; margin-bottom: 3px; }
 
-        /* Estilos nuevos para Capital */
-        .cap-box { display: flex; flex-direction: column; align-items: center; background: #f8fafc; padding: 5px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .cap-box label { font-size: 0.5rem; color: var(--warning); }
-        .cap-input { width: 90%; border: none; background: transparent; font-size: 0.85rem; font-weight: 900; text-align: center; color: #334155; padding: 2px; outline: none; }
-        
         .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        .history-item { border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; align-items: center; }
-        .action-btn { font-size: 0.9rem; cursor: pointer; border: none; background: none; }
+        .btn-save-manual { background: var(--primary); color: white; border: none; width: 100%; padding: 8px; border-radius: 10px; font-size: 0.7rem; margin-top: 10px; cursor: pointer; font-weight: bold; }
         
         .hidden { display: none !important; }
     </style>
@@ -59,87 +56,68 @@
 <div class="animated-bg" id="bg"></div>
 
 <div class="capital-card">
-    <div style="text-align: center; font-weight: 900; font-size: 0.75rem; margin-bottom: 8px;">💸 FONDOS ACUMULADOS</div>
+    <div style="text-align: center; font-weight: 900; font-size: 0.8rem; margin-bottom: 10px;">📊 DISTRIBUCIÓN DE FONDOS</div>
     
-    <div style="font-size: 0.55rem; font-weight: 800; color: #64748b; text-align: center; margin-bottom: 4px;">⬇️ PARA REINVERSIÓN Y GASTOS ⬇️</div>
-    <div class="grid" style="gap: 4px; grid-template-columns: 1fr 1fr 1fr 1fr;">
-        <div class="cap-box"><label>FILAMENTO</label><input type="number" id="capMat" class="cap-input"></div>
-        <div class="cap-box"><label>ENERGÍA</label><input type="number" id="capEne" class="cap-input"></div>
-        <div class="cap-box"><label>MÁQUINA</label><input type="number" id="capMch" class="cap-input"></div>
-        <div class="cap-box"><label>EXTRAS</label><input type="number" id="capExt" class="cap-input"></div>
+    <div class="grid-4">
+        <div class="cap-box"><label>FILAMENTO</label><input type="number" id="capMat"></div>
+        <div class="cap-box"><label>ENERGÍA</label><input type="number" id="capEne"></div>
+        <div class="cap-box"><label>MÁQUINA</label><input type="number" id="capMch"></div>
+        <div class="cap-box"><label>EXTRAS</label><input type="number" id="capExt"></div>
     </div>
 
-    <div style="margin-top: 12px; background: #ecfdf5; padding: 8px; border-radius: 12px; border: 2px solid var(--success); text-align: center;">
-        <label style="font-size: 0.65rem; color: var(--success);">GANANCIA PURA (TU BOLSILLO)</label>
-        <input type="number" id="capNetInput" style="width: 100%; border: none; background: transparent; font-size: 1.3rem; font-weight: 900; text-align: center; color: var(--success); outline: none;">
+    <div class="net-box">
+        <label style="color: var(--success); font-size: 0.7rem;">💰 GANANCIA PURA ACUMULADA</label>
+        <input type="number" id="capNet" style="width: 100%; border: none; background: transparent; font-size: 1.5rem; font-weight: 900; text-align: center; color: var(--success); outline: none;">
     </div>
     
-    <button onclick="updateCapitalManually()" style="font-size: 0.55rem; width: 100%; margin-top: 8px; color: #94a3b8; border: none; background: none; cursor: pointer; text-decoration: underline;">💾 Guardar Ajuste Manual</button>
+    <button class="btn-save-manual" onclick="saveManualAdjustment()">💾 GUARDAR AJUSTE MANUAL</button>
 </div>
 
 <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h2 id="formTitle">NUEVA VENTA</h2>
-        <button onclick="toggleConfig()" style="font-size:1.2rem; cursor:pointer; background:none; border:none;">⚙️</button>
+        <h2>NUEVA VENTA</h2>
+        <button onclick="toggleConfig()" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">⚙️</button>
     </div>
 
     <div style="background: #f8fafc; padding: 12px; border-radius: 18px;">
         <label>Nombre del Proyecto</label>
-        <input type="text" id="projName" placeholder="Ej: 10 Llaveros" style="width: 93%; margin-bottom: 8px;">
+        <input type="text" id="projName" placeholder="Ej: Maceta Grande" style="width: 93%; margin-bottom: 8px;">
         
-        <div class="grid">
-            <div><label>Gramos Totales</label><input type="number" id="usedGrams" oninput="calculate()"></div>
-            <div><label>Horas Totales</label><input type="number" id="hours" oninput="calculate()"></div>
-            <div><label>Cant. Items</label><input type="number" id="itemQty" value="1" oninput="calculate()"></div>
-            <div><label>Costo Extras</label><input type="number" id="extraItems" oninput="calculate()" placeholder="Argollas"></div>
+        <div class="grid-2">
+            <div><label>Gramos</label><input type="number" id="usedGrams" oninput="calculate()"></div>
+            <div><label>Horas</label><input type="number" id="hours" oninput="calculate()"></div>
+            <div><label>Cantidad</label><input type="number" id="itemQty" value="1" oninput="calculate()"></div>
+            <div><label>Extras $</label><input type="number" id="extraItems" oninput="calculate()"></div>
         </div>
 
-        <div class="sale-input-box">
-            <div class="suggested-price-bar">
-                <span style="font-size: 0.65rem; font-weight: bold; color: #b45309;">💡 PRECIO SUGERIDO<br>(UNITARIO)</span>
-                <span id="suggestedPrice" style="color: #b45309; font-weight: 900; font-size: 1.1rem;">$0.00</span>
-            </div>
-            
-            <label style="color: var(--primary)">Tu Precio de Venta (Unitario)</label>
-            <input type="number" id="saleUnitPrice" value="2000" oninput="calculate()" style="width: 93%; font-size: 1.2rem; font-weight: 900; border-color: var(--accent); color: var(--text);">
+        <div style="background: #eff6ff; padding: 10px; border-radius: 12px; border: 2px solid var(--accent); margin-top: 10px;">
+            <label style="color: var(--primary)">Precio Venta Unitario ($)</label>
+            <input type="number" id="saleUnitPrice" oninput="calculate()" style="width: 93%; font-size: 1.2rem; font-weight: 900;">
         </div>
     </div>
 
     <div id="configSection" class="hidden" style="margin-top: 10px; padding: 10px; background: #eee; border-radius: 10px;">
-        <div class="grid">
-            <div><label>Ganancia Sugerida %</label><input type="number" id="profit" oninput="calculate()" value="200"></div>
+        <div class="grid-2">
             <div><label>Precio Rollo</label><input type="number" id="fPrice" oninput="calculate()"></div>
             <div><label>Precio Máq</label><input type="number" id="machinePrice" oninput="calculate()"></div>
             <div><label>Vida Útil h</label><input type="number" id="machineLife" oninput="calculate()"></div>
             <div><label>kWh $</label><input type="number" id="kwhCost" oninput="calculate()"></div>
-            <div><label>Watts Máq</label><input type="number" id="wattage" oninput="calculate()"></div>
+            <div><label>Watts</label><input type="number" id="wattage" oninput="calculate()"></div>
         </div>
     </div>
 
     <div class="results">
-        <div class="desglose-item"><span>Total Cobrado:</span> <span id="resTotalVenta" style="font-weight:900">$0.00</span></div>
-        <div class="desglose-item" style="border:none;"><span>(-) Costo Fab. Total:</span> <span id="resCostoFab" style="color:var(--warning)">$0.00</span></div>
-        
         <div class="sub-desglose">
-            <div><span>Filamento:</span> <span id="detFilamento">$0.00</span></div>
-            <div><span>Energía Eléctrica:</span> <span id="detEnergia">$0.00</span></div>
-            <div><span>Desgaste Máquina:</span> <span id="detMaquina">$0.00</span></div>
-            <div><span>Extras (Insumos):</span> <span id="detExtras">$0.00</span></div>
+            <div><span>Filamento:</span> <span id="detMat">$0.00</span></div>
+            <div><span>Luz:</span> <span id="detEne">$0.00</span></div>
+            <div><span>Amortización:</span> <span id="detMch">$0.00</span></div>
+            <div><span>Extras:</span> <span id="detExt">$0.00</span></div>
         </div>
-        
-        <div style="font-size: 1.4rem; font-weight: 900; color: var(--success); display: flex; justify-content: space-between; border-top: 1px solid #334155; margin-top: 8px; padding-top: 8px;">
-            <span style="font-size:0.8rem; color:#94a3b8">GANANCIA PURA:</span> <span id="resNet">$0.00</span>
+        <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--success); border-top:1px solid #334155; padding-top:10px;">
+            <span>GANANCIA LIMPIA:</span> <span id="resNet" style="font-size: 1.3rem;">$0.00</span>
         </div>
-        <div style="font-size:0.65rem; text-align:right; opacity:0.7; margin-top:5px;">Ganancia por unidad: <span id="resNetUnit">$0.00</span></div>
-
-        <button id="btnMain" class="btn-reg" onclick="handleSaleAction()">🚀 REGISTRAR VENTA</button>
-        <button id="btnCancel" class="btn-cancel hidden" onclick="cancelEdit()" style="color:white; background: #64748b; width:100%; padding:8px; border-radius:10px; margin-top:5px; border:none; cursor:pointer;">CANCELAR EDICIÓN</button>
+        <button class="btn-reg" onclick="registerSale()">🚀 REGISTRAR VENTA</button>
     </div>
-</div>
-
-<div class="history">
-    <div style="font-weight: bold; border-bottom: 2px solid var(--primary); margin-bottom: 8px; font-size: 0.8rem;">HISTORIAL DE VENTAS</div>
-    <div id="salesList"></div>
 </div>
 
 <script>
@@ -155,169 +133,80 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    let editingKey = null;
-    let oldSaleData = null;
-    const ids = ['profit', 'fPrice', 'usedGrams', 'hours', 'wattage', 'machinePrice', 'machineLife', 'kwhCost', 'extraItems', 'itemQty', 'saleUnitPrice'];
+    const configIds = ['fPrice', 'machinePrice', 'machineLife', 'kwhCost', 'wattage'];
+    const capIds = { mat: 'capMat', ene: 'capEne', mch: 'capMch', ext: 'capExt', net: 'capNet' };
 
+    // Cargar Configuración
     db.ref('settings').on('value', snap => {
         const d = snap.val();
-        if(d) ids.forEach(id => { if(d[id] !== undefined) document.getElementById(id).value = d[id]; });
-        calculate();
+        if(d) configIds.forEach(id => { if(d[id]) document.getElementById(id).value = d[id]; });
     });
 
-    // NUEVO: Cargar capital con los 5 campos
+    // Cargar Capital (Fondos)
     db.ref('capital').on('value', snap => {
-        const c = snap.val() || { fabMat: 0, fabEne: 0, fabMch: 0, fabExt: 0, net: 0, fab: 0 };
-        
-        // Si hay un saldo "fab" viejo de las versiones anteriores, lo sumamos a extras temporalmente en la vista
-        // para que no pierdas esa plata. Luego podés acomodarlo a mano.
-        let saldoViejo = c.fab || 0;
-
-        document.getElementById('capMat').value = (c.fabMat || 0).toFixed(2);
-        document.getElementById('capEne').value = (c.fabEne || 0).toFixed(2);
-        document.getElementById('capMch').value = (c.fabMch || 0).toFixed(2);
-        document.getElementById('capExt').value = ((c.fabExt || 0) + saldoViejo).toFixed(2);
-        document.getElementById('capNetInput').value = (c.net || 0).toFixed(2);
-    });
-
-    db.ref('sales').on('value', snap => {
-        const list = document.getElementById('salesList');
-        list.innerHTML = "";
-        snap.forEach(child => {
-            const s = child.val();
-            list.innerHTML = `
-                <div class="history-item">
-                    <div style="font-size: 0.7rem;">
-                        <b>${s.name}</b> (${s.qty}u)<br>
-                        Neto: <span style="color:var(--success)">$${s.net.toFixed(2)}</span> | Bruto: $${s.total.toFixed(2)}
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="action-btn" onclick="prepareEdit('${child.key}')">✏️</button>
-                        <button class="action-btn" onclick="deleteSale('${child.key}')">🗑️</button>
-                    </div>
-                </div>
-            ` + list.innerHTML;
-        });
+        const c = snap.val() || {};
+        document.getElementById('capMat').value = (c.mat || 0).toFixed(2);
+        document.getElementById('capEne').value = (c.ene || 0).toFixed(2);
+        document.getElementById('capMch').value = (c.mch || 0).toFixed(2);
+        document.getElementById('capExt').value = (c.ext || (c.fab || 0)).toFixed(2);
+        document.getElementById('capNet').value = (c.net || 0).toFixed(2);
     });
 
     function calculate() {
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
-        const qty = v('itemQty') || 1;
-        
         const mat = (v('fPrice') / 1000) * v('usedGrams');
-        const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
-        const extras = v('extraItems');
-        
-        const fabTotal = mat + mch + ene + extras;
-        
-        document.getElementById('detFilamento').innerText = `$${mat.toFixed(2)}`;
-        document.getElementById('detEnergia').innerText = `$${ene.toFixed(2)}`;
-        document.getElementById('detMaquina').innerText = `$${mch.toFixed(2)}`;
-        document.getElementById('detExtras').innerText = `$${extras.toFixed(2)}`;
+        const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
+        const ext = v('extraItems');
+        const totalCost = mat + ene + mch + ext;
+        const totalSale = v('saleUnitPrice') * v('itemQty');
+        const netProfit = totalSale - totalCost;
 
-        const profitMargin = v('profit') / 100;
-        const suggestedTotal = fabTotal + (fabTotal * profitMargin);
-        const suggestedUnit = suggestedTotal / qty;
-        document.getElementById('suggestedPrice').innerText = `$${suggestedUnit.toFixed(2)}`;
+        document.getElementById('detMat').innerText = `$${mat.toFixed(2)}`;
+        document.getElementById('detEne').innerText = `$${ene.toFixed(2)}`;
+        document.getElementById('detMch').innerText = `$${mch.toFixed(2)}`;
+        document.getElementById('detExt').innerText = `$${ext.toFixed(2)}`;
+        document.getElementById('resNet').innerText = `$${netProfit.toFixed(2)}`;
 
-        const totalVenta = v('saleUnitPrice') * qty;
-        const gananciaNeta = totalVenta - fabTotal;
-
-        document.getElementById('resTotalVenta').innerText = `$${totalVenta.toFixed(2)}`;
-        document.getElementById('resCostoFab').innerText = `$${fabTotal.toFixed(2)}`;
-        document.getElementById('resNet').innerText = `$${gananciaNeta.toFixed(2)}`;
-        document.getElementById('resNetUnit').innerText = `$${(gananciaNeta / qty).toFixed(2)}`;
-        
-        // Devolvemos el desglose completo
-        return { 
-            fabMat: mat, fabEne: ene, fabMch: mch, fabExt: extras, 
-            net: gananciaNeta, total: totalVenta, name: document.getElementById('projName').value, qty: qty 
-        };
+        return { mat, ene, mch, ext, net: netProfit };
     }
 
-    function handleSaleAction() {
+    function registerSale() {
         const data = calculate();
-        if(editingKey) {
-            db.ref('capital').transaction(c => {
-                if(c) {
-                    c.fabMat = (c.fabMat || 0) - (oldSaleData.fabMat || 0) + data.fabMat;
-                    c.fabEne = (c.fabEne || 0) - (oldSaleData.fabEne || 0) + data.fabEne;
-                    c.fabMch = (c.fabMch || 0) - (oldSaleData.fabMch || 0) + data.fabMch;
-                    c.fabExt = (c.fabExt || 0) - (oldSaleData.fabExt || 0) + data.fabExt;
-                    c.net = (c.net || 0) - (oldSaleData.net || 0) + data.net;
-                }
-                return c;
-            });
-            db.ref('sales/' + editingKey).update({...data, date: new Date().toLocaleDateString()});
-            cancelEdit();
-        } else {
-            db.ref('sales').push({...data, date: new Date().toLocaleDateString()});
-            db.ref('capital').transaction(c => {
-                if(!c) c = { fabMat: 0, fabEne: 0, fabMch: 0, fabExt: 0, net: 0, fab: 0 };
-                c.fabMat = (c.fabMat || 0) + data.fabMat;
-                c.fabEne = (c.fabEne || 0) + data.fabEne;
-                c.fabMch = (c.fabMch || 0) + data.fabMch;
-                c.fabExt = (c.fabExt || 0) + data.fabExt;
-                c.net = (c.net || 0) + data.net;
-                return c;
-            });
-            const vals = {};
-            ids.forEach(id => vals[id] = parseFloat(document.getElementById(id).value) || 0);
-            db.ref('settings').set(vals);
-            document.getElementById('projName').value = "";
-        }
-        alert("¡Venta guardada y fondos distribuidos!");
+        db.ref('capital').transaction(c => {
+            if(!c) c = { mat:0, ene:0, mch:0, ext:0, net:0 };
+            c.mat = (c.mat || 0) + data.mat;
+            c.ene = (c.ene || 0) + data.ene;
+            c.mch = (c.mch || 0) + data.mch;
+            c.ext = (c.ext || 0) + data.ext;
+            c.net = (c.net || 0) + data.net;
+            return c;
+        });
+        // Guardar settings para no perder precios
+        const settings = {};
+        configIds.forEach(id => settings[id] = parseFloat(document.getElementById(id).value) || 0);
+        db.ref('settings').set(settings);
+        alert("Venta registrada y fondos repartidos.");
     }
 
-    function prepareEdit(key) {
-        db.ref('sales/' + key).once('value', snap => {
-            const s = snap.val();
-            oldSaleData = s;
-            editingKey = key;
-            document.getElementById('projName').value = s.name;
-            document.getElementById('itemQty').value = s.qty;
-            document.getElementById('saleUnitPrice').value = s.total / s.qty;
-            
-            document.getElementById('btnMain').innerText = "💾 GUARDAR CAMBIOS";
-            document.getElementById('btnCancel').classList.remove('hidden');
-            document.getElementById('formTitle').innerText = "EDITANDO VENTA";
-            window.scrollTo(0,0);
-            calculate();
+    // ESTA ES LA FUNCIÓN QUE NECESITÁS
+    function saveManualAdjustment() {
+        const getV = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const newCap = {
+            mat: getV('capMat'),
+            ene: getV('capEne'),
+            mch: getV('capMch'),
+            ext: getV('capExt'),
+            net: getV('capNet')
+        };
+        db.ref('capital').set(newCap).then(() => {
+            alert("✅ Fondos actualizados correctamente.");
         });
     }
 
-    function deleteSale(key) {
-        if(confirm("¿Borrar venta? Se restarán los montos de tus fondos.")) {
-            db.ref('sales/' + key).once('value', snap => {
-                const s = snap.val();
-                db.ref('capital').transaction(c => {
-                    if(c) { 
-                        c.fabMat = (c.fabMat || 0) - (s.fabMat || 0);
-                        c.fabEne = (c.fabEne || 0) - (s.fabEne || 0);
-                        c.fabMch = (c.fabMch || 0) - (s.fabMch || 0);
-                        c.fabExt = (c.fabExt || 0) - (s.fabExt || 0);
-                        c.net = (c.net || 0) - (s.net || 0);
-                    }
-                    return c;
-                });
-                db.ref('sales/' + key).remove();
-            });
-        }
-    }
-
-    function updateCapitalManually() {
-        // Al guardar manualmente, eliminamos el "fab" viejo para limpiar la base de datos
-        const fabMat = parseFloat(document.getElementById('capMat').value) || 0;
-        const fabEne = parseFloat(document.getElementById('capEne').value) || 0;
-        const fabMch = parseFloat(document.getElementById('capMch').value) || 0;
-        const fabExt = parseFloat(document.getElementById('capExt').value) || 0;
-        const net = parseFloat(document.getElementById('capNetInput').value) || 0;
-        db.ref('capital').set({ fabMat, fabEne, fabMch, fabExt, net, fab: 0 }).then(() => alert("Fondos ajustados manualmente"));
-    }
-
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
-    
+
+    // Fondo animado
     for(let i=0; i<6; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word'; n.innerText = 'NUÑEZ';
