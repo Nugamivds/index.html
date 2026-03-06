@@ -22,7 +22,7 @@
         .nuñez-word { position: absolute; font-weight: 900; opacity: 0.12; animation: moveLeft 20s infinite linear; font-size: 4rem; color: white; }
         @keyframes moveLeft { 0% { transform: translateX(100vw); } 100% { transform: translateX(-160%); } }
         
-        .container, .capital-card, .history { 
+        .container, .capital-card, .history-card { 
             background: rgba(255, 255, 255, 0.95); padding: 1.2rem; border-radius: 24px; 
             width: 88%; max-width: 380px; backdrop-filter: blur(12px); z-index: 10;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2); margin-bottom: 20px;
@@ -34,13 +34,18 @@
         label { font-size: 0.55rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
         input { width: 85%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; outline: none; }
         
-        /* Estilos de los Sobres de Dinero */
         .cap-box { background: #f1f5f9; padding: 8px 4px; border-radius: 12px; border: 1px solid #cbd5e1; text-align: center; }
         .cap-box label { color: var(--warning); font-size: 0.45rem; display: block; margin-bottom: 3px; }
         .cap-box input { width: 90%; border: none; background: transparent; font-size: 0.8rem; font-weight: 900; text-align: center; padding: 0; color: #1e293b; }
 
         .net-box { margin-top: 15px; background: #ecfdf5; padding: 10px; border-radius: 15px; border: 2px solid var(--success); text-align: center; }
-        
+
+        /* Resumen de Comparación */
+        .comparison-bar { display: flex; justify-content: space-around; margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 15px; border: 1px solid #e2e8f0; }
+        .comparison-bar div { text-align: center; }
+        .comparison-bar span { display: block; font-size: 0.9rem; font-weight: 900; }
+        .comparison-bar label { font-size: 0.45rem; color: #94a3b8; }
+
         .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
         .sub-desglose { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin: 10px 0; font-size: 0.7rem; }
         .sub-desglose div { display: flex; justify-content: space-between; margin-bottom: 3px; }
@@ -48,6 +53,11 @@
         .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
         .btn-save-manual { background: var(--primary); color: white; border: none; width: 100%; padding: 8px; border-radius: 10px; font-size: 0.7rem; margin-top: 10px; cursor: pointer; font-weight: bold; }
         
+        /* Estilos del Historial */
+        .history-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
+        .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; background: white; margin-bottom: 5px; border-radius: 12px; font-size: 0.75rem; }
+        .history-item strong { color: var(--primary); }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -63,6 +73,18 @@
         <div class="cap-box"><label>ENERGÍA</label><input type="number" id="capEne"></div>
         <div class="cap-box"><label>MÁQUINA</label><input type="number" id="capMch"></div>
         <div class="cap-box"><label>EXTRAS</label><input type="number" id="capExt"></div>
+    </div>
+
+    <div class="comparison-bar">
+        <div>
+            <label>TOTAL REINVERSIÓN</label>
+            <span id="sumReinv" style="color: var(--warning);">$0.00</span>
+        </div>
+        <div style="border-left: 1px solid #e2e8f0;"></div>
+        <div>
+            <label>GANANCIA NETA</label>
+            <span id="sumNet" style="color: var(--success);">$0.00</span>
+        </div>
     </div>
 
     <div class="net-box">
@@ -120,6 +142,12 @@
     </div>
 </div>
 
+<div class="history-card">
+    <div style="text-align: center; font-weight: 900; font-size: 0.8rem;">📜 REGISTRO DE VENTAS</div>
+    <div id="historyList" class="history-list">
+        </div>
+</div>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyCx6AkXCmpXArUpaIDd8zZIS3Gav8qRg-o",
@@ -134,7 +162,6 @@
     const db = firebase.database();
     
     const configIds = ['fPrice', 'machinePrice', 'machineLife', 'kwhCost', 'wattage'];
-    const capIds = { mat: 'capMat', ene: 'capEne', mch: 'capMch', ext: 'capExt', net: 'capNet' };
 
     // Cargar Configuración
     db.ref('settings').on('value', snap => {
@@ -142,14 +169,40 @@
         if(d) configIds.forEach(id => { if(d[id]) document.getElementById(id).value = d[id]; });
     });
 
-    // Cargar Capital (Fondos)
+    // Cargar Capital y Actualizar el Resumen de Comparación
     db.ref('capital').on('value', snap => {
         const c = snap.val() || {};
-        document.getElementById('capMat').value = (c.mat || 0).toFixed(2);
-        document.getElementById('capEne').value = (c.ene || 0).toFixed(2);
-        document.getElementById('capMch').value = (c.mch || 0).toFixed(2);
-        document.getElementById('capExt').value = (c.ext || (c.fab || 0)).toFixed(2);
-        document.getElementById('capNet').value = (c.net || 0).toFixed(2);
+        const m = c.mat || 0, e = c.ene || 0, mc = c.mch || 0, ex = c.ext || 0, nt = c.net || 0;
+        
+        document.getElementById('capMat').value = m.toFixed(2);
+        document.getElementById('capEne').value = e.toFixed(2);
+        document.getElementById('capMch').value = mc.toFixed(2);
+        document.getElementById('capExt').value = ex.toFixed(2);
+        document.getElementById('capNet').value = nt.toFixed(2);
+
+        // Cálculo de totales para el resumen
+        document.getElementById('sumReinv').innerText = `$${(m + e + mc + ex).toLocaleString()}`;
+        document.getElementById('sumNet').innerText = `$${nt.toLocaleString()}`;
+    });
+
+    // Escuchar cambios en el Historial de Ventas
+    db.ref('history').limitToLast(10).on('value', snap => {
+        const container = document.getElementById('historyList');
+        container.innerHTML = '';
+        const data = snap.val();
+        if(data) {
+            Object.values(data).reverse().forEach(v => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div><strong>${v.name}</strong><br><small>${v.date}</small></div>
+                    <div style="text-align:right">
+                        <span style="color:var(--primary); font-weight:bold;">$${v.total}</span><br>
+                        <small style="color:var(--success)">Neto: $${v.net}</small>
+                    </div>`;
+                container.appendChild(div);
+            });
+        }
     });
 
     function calculate() {
@@ -168,11 +221,14 @@
         document.getElementById('detExt').innerText = `$${ext.toFixed(2)}`;
         document.getElementById('resNet').innerText = `$${netProfit.toFixed(2)}`;
 
-        return { mat, ene, mch, ext, net: netProfit };
+        return { mat, ene, mch, ext, net: netProfit, total: totalSale };
     }
 
     function registerSale() {
         const data = calculate();
+        const pName = document.getElementById('projName').value || "Venta";
+
+        // 1. Actualizar Fondos
         db.ref('capital').transaction(c => {
             if(!c) c = { mat:0, ene:0, mch:0, ext:0, net:0 };
             c.mat = (c.mat || 0) + data.mat;
@@ -182,31 +238,33 @@
             c.net = (c.net || 0) + data.net;
             return c;
         });
-        // Guardar settings para no perder precios
+
+        // 2. Registrar en Historial
+        db.ref('history').push({
+            name: pName,
+            total: data.total.toFixed(2),
+            net: data.net.toFixed(2),
+            date: new Date().toLocaleString()
+        });
+
         const settings = {};
         configIds.forEach(id => settings[id] = parseFloat(document.getElementById(id).value) || 0);
         db.ref('settings').set(settings);
-        alert("Venta registrada y fondos repartidos.");
+        
+        alert("Venta registrada.");
+        document.getElementById('projName').value = '';
     }
 
-    // ESTA ES LA FUNCIÓN QUE NECESITÁS
     function saveManualAdjustment() {
         const getV = (id) => parseFloat(document.getElementById(id).value) || 0;
         const newCap = {
-            mat: getV('capMat'),
-            ene: getV('capEne'),
-            mch: getV('capMch'),
-            ext: getV('capExt'),
-            net: getV('capNet')
+            mat: getV('capMat'), ene: getV('capEne'), mch: getV('capMch'), ext: getV('capExt'), net: getV('capNet')
         };
-        db.ref('capital').set(newCap).then(() => {
-            alert("✅ Fondos actualizados correctamente.");
-        });
+        db.ref('capital').set(newCap).then(() => alert("✅ Fondos actualizados."));
     }
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
 
-    // Fondo animado
     for(let i=0; i<6; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word'; n.innerText = 'NUÑEZ';
