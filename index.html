@@ -27,6 +27,19 @@
             width: 88%; max-width: 380px; backdrop-filter: blur(12px); z-index: 10;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2); margin-bottom: 20px;
         }
+
+        /* Nueva Caja de Total Global */
+        .global-total-display {
+            background: #1e293b;
+            color: #fff;
+            padding: 15px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 2px solid var(--accent);
+        }
+        .global-total-display label { color: var(--accent); font-size: 0.7rem; display: block; margin-bottom: 5px; }
+        .global-total-display span { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; }
         
         h2 { margin: 0; color: var(--primary); font-size: 1.1rem; text-transform: uppercase; }
         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
@@ -60,7 +73,12 @@
 <div class="animated-bg" id="bg"></div>
 
 <div class="capital-card">
-    <div style="text-align: center; font-weight: 900; font-size: 0.8rem; margin-bottom: 10px;">📊 DISTRIBUCIÓN DE FONDOS</div>
+    <div class="global-total-display">
+        <label>💰 TOTAL ABSOLUTO EN CAJA</label>
+        <span id="globalTotalDisplay">$0.00</span>
+    </div>
+
+    <div style="text-align: center; font-weight: 900; font-size: 0.8rem; margin-bottom: 10px; color: var(--text);">📊 DESGLOSE DE FONDOS</div>
     
     <div class="grid-4">
         <div class="cap-box"><label>FILAMENTO</label><input type="number" id="capMat"></div>
@@ -76,7 +94,7 @@
     </div>
 
     <div class="net-box">
-        <label style="color: var(--success); font-size: 0.7rem;">💰 GANANCIA PURA ACUMULADA</label>
+        <label style="color: var(--success); font-size: 0.7rem;">🏆 GANANCIA PURA ACUMULADA</label>
         <input type="number" id="capNet" style="width: 100%; border: none; background: transparent; font-size: 1.5rem; font-weight: 900; text-align: center; color: var(--success); outline: none;">
     </div>
     
@@ -163,13 +181,22 @@
     db.ref('capital').on('value', snap => {
         const c = snap.val() || {};
         const m = c.mat || 0, e = c.ene || 0, mc = c.mch || 0, ex = c.ext || 0, nt = c.net || 0;
+        
+        // Actualizar inputs
         document.getElementById('capMat').value = m.toFixed(2);
         document.getElementById('capEne').value = e.toFixed(2);
         document.getElementById('capMch').value = mc.toFixed(2);
         document.getElementById('capExt').value = ex.toFixed(2);
         document.getElementById('capNet').value = nt.toFixed(2);
-        document.getElementById('sumReinv').innerText = `$${(m + e + mc + ex).toLocaleString()}`;
+        
+        // Sumar reinversión y actualizar resumen
+        const totalReinv = m + e + mc + ex;
+        document.getElementById('sumReinv').innerText = `$${totalReinv.toLocaleString()}`;
         document.getElementById('sumNet').innerText = `$${nt.toLocaleString()}`;
+
+        // NUEVO: CALCULAR Y MOSTRAR EL TOTAL GLOBAL
+        const globalTotal = totalReinv + nt;
+        document.getElementById('globalTotalDisplay').innerText = `$${globalTotal.toLocaleString()}`;
     });
 
     db.ref('history').limitToLast(10).on('value', snap => {
@@ -200,11 +227,8 @@
         const qty = parseFloat(document.getElementById('qQty').value) || 0;
         const priceUnit = parseFloat(document.getElementById('qPriceUnit').value) || 0;
         const name = document.getElementById('qName').value;
-
-        // Aquí aplicamos tu regla: Precio unitario * Cantidad
         const totalSale = priceUnit * qty;
         const data = runCalculation(grams, 0.3, qty, 0, totalSale);
-        
         processSale(name, data);
         document.getElementById('qPriceUnit').value = '';
     }
@@ -216,7 +240,6 @@
         const extras = parseFloat(document.getElementById('extraItems').value) || 0;
         const price = parseFloat(document.getElementById('salePrice').value) || 0;
         const name = document.getElementById('projName').value || "Proyecto";
-
         const data = runCalculation(grams, hours, qty, extras, price);
         processSale(name, data);
         ['usedGrams', 'hours', 'salePrice', 'projName'].forEach(id => document.getElementById(id).value = '');
