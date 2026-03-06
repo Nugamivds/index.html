@@ -52,15 +52,14 @@
         .quick-section { background: #fffbeb; border: 2px solid var(--warning); padding: 12px; border-radius: 18px; margin-bottom: 10px; }
         .detail-section { background: #f8fafc; border: 2px solid var(--accent); padding: 12px; border-radius: 18px; }
 
-        .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; transition: 0.3s; }
-        .btn-reg:active { transform: scale(0.95); }
+        .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .btn-reg:active { transform: scale(0.96); }
         .btn-save-manual { background: var(--primary); color: white; border: none; width: 100%; padding: 8px; border-radius: 10px; font-size: 0.7rem; margin-top: 10px; cursor: pointer; font-weight: bold; }
         
         .history-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; background: white; margin-bottom: 5px; border-radius: 12px; font-size: 0.7rem; }
         .history-actions { display: flex; gap: 5px; }
-        .btn-action { border: none; background: #f1f5f9; padding: 5px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
-        .btn-action:hover { background: #e2e8f0; }
+        .btn-action { border: none; background: #f1f5f9; padding: 6px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
 
         .hidden { display: none !important; }
     </style>
@@ -72,7 +71,7 @@
 <div class="capital-card">
     <div class="global-total-display">
         <label>💰 TOTAL ABSOLUTO EN CAJA</label>
-        <span id="globalTotalDisplay">$0.00</span>
+        <span id="globalTotalDisplay">$0</span>
     </div>
 
     <div style="text-align: center; font-weight: 900; font-size: 0.8rem; margin-bottom: 10px; color: var(--text);">📊 DESGLOSE DE FONDOS</div>
@@ -85,9 +84,9 @@
     </div>
 
     <div class="comparison-bar">
-        <div><label>REINVERSIÓN</label><span id="sumReinv" style="color: var(--warning);">$0.00</span></div>
+        <div><label>REINVERSIÓN</label><span id="sumReinv" style="color: var(--warning);">$0</span></div>
         <div style="border-left: 1px solid #e2e8f0;"></div>
-        <div><label>GANANCIA NETA</label><span id="sumNet" style="color: var(--success);">$0.00</span></div>
+        <div><label>GANANCIA NETA</label><span id="sumNet" style="color: var(--success);">$0</span></div>
     </div>
 
     <div class="net-box">
@@ -156,6 +155,7 @@
 </div>
 
 <script>
+    // Configuración Firebase (Usando tu DB)
     const firebaseConfig = {
         apiKey: "AIzaSyCx6AkXCmpXArUpaIDd8zZIS3Gav8qRg-o",
         authDomain: "calculadora-3d-54d4e.firebaseapp.com",
@@ -170,26 +170,36 @@
     
     const configIds = ['fPrice', 'machinePrice', 'machineLife', 'kwhCost', 'wattage'];
 
+    // Carga de configuración
     db.ref('settings').on('value', snap => {
         const d = snap.val();
         if(d) configIds.forEach(id => { if(d[id]) document.getElementById(id).value = d[id]; });
     });
 
+    // Carga de Capital con REDONDEO matemático
     db.ref('capital').on('value', snap => {
         const c = snap.val() || {};
-        const m = c.mat || 0, e = c.ene || 0, mc = c.mch || 0, ex = c.ext || 0, nt = c.net || 0;
-        document.getElementById('capMat').value = m.toFixed(2);
-        document.getElementById('capEne').value = e.toFixed(2);
-        document.getElementById('capMch').value = mc.toFixed(2);
-        document.getElementById('capExt').value = ex.toFixed(2);
-        document.getElementById('capNet').value = nt.toFixed(2);
+        const m = Math.round(c.mat || 0), 
+              e = Math.round(c.ene || 0), 
+              mc = Math.round(c.mch || 0), 
+              ex = Math.round(c.ext || 0), 
+              nt = Math.round(c.net || 0);
+
+        document.getElementById('capMat').value = m;
+        document.getElementById('capEne').value = e;
+        document.getElementById('capMch').value = mc;
+        document.getElementById('capExt').value = ex;
+        document.getElementById('capNet').value = nt;
+
         const totalReinv = m + e + mc + ex;
+        const totalGlobal = totalReinv + nt;
+
         document.getElementById('sumReinv').innerText = `$${totalReinv.toLocaleString()}`;
         document.getElementById('sumNet').innerText = `$${nt.toLocaleString()}`;
-        document.getElementById('globalTotalDisplay').innerText = `$${(totalReinv + nt).toLocaleString()}`;
+        document.getElementById('globalTotalDisplay').innerText = `$${totalGlobal.toLocaleString()}`;
     });
 
-    // ESCUCHAR HISTORIAL CON BOTONES DE ACCIÓN
+    // Historial
     db.ref('history').limitToLast(15).on('value', snap => {
         const list = document.getElementById('historyList');
         list.innerHTML = '';
@@ -200,30 +210,38 @@
                 const div = document.createElement('div');
                 div.className = 'history-item';
                 div.innerHTML = `
-                    <div style="flex:1">
-                        <strong>${v.name}</strong><br>
-                        <small>${v.date}</small>
-                    </div>
+                    <div style="flex:1"><strong>${v.name}</strong><br><small>${v.date}</small></div>
                     <div style="text-align:right; margin-right:10px;">
-                        <b>$${v.total}</b><br>
-                        <small style="color:green">Neto: $${v.net}</small>
+                        <b>$${Math.round(v.total)}</b><br><small style="color:green">Neto: $${Math.round(v.net)}</small>
                     </div>
                     <div class="history-actions">
-                        <button class="btn-action" onclick="editRecord('${key}')" title="Editar">✏️</button>
-                        <button class="btn-action" onclick="deleteRecord('${key}')" title="Eliminar">🗑️</button>
+                        <button class="btn-action" onclick="editRecord('${key}')">✏️</button>
+                        <button class="btn-action" onclick="deleteRecord('${key}')">🗑️</button>
                     </div>`;
                 list.appendChild(div);
             });
         }
     });
 
+    // LÓGICA DE CÁLCULO CON REDONDEO FORZADO
     function runCalculation(grams, hours, qty, extras, salePriceTotal) {
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
+        
         const costMat = (v('fPrice') / 1000) * grams * qty;
         const costEne = (v('wattage')/1000) * hours * v('kwhCost') * qty;
         const costMch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * hours * qty : 0;
-        const netProfit = salePriceTotal - (costMat + costEne + costMch + extras);
-        return { mat: costMat, ene: costEne, mch: costMch, ext: extras, net: netProfit, total: salePriceTotal, raw: {grams, hours, qty} };
+        
+        const rawNet = salePriceTotal - (costMat + costEne + costMch + extras);
+
+        return { 
+            mat: Math.round(costMat), 
+            ene: Math.round(costEne), 
+            mch: Math.round(costMch), 
+            ext: Math.round(extras), 
+            net: Math.round(rawNet), 
+            total: Math.round(salePriceTotal), 
+            raw: {grams, hours, qty} 
+        };
     }
 
     function registerQuickSale() {
@@ -232,6 +250,7 @@
         const priceUnit = parseFloat(document.getElementById('qPriceUnit').value) || 0;
         const name = document.getElementById('qName').value;
         const totalSale = priceUnit * qty;
+        
         const data = runCalculation(grams, 0.3, qty, 0, totalSale);
         processSale(name, data);
         document.getElementById('qPriceUnit').value = '';
@@ -244,6 +263,7 @@
         const extras = parseFloat(document.getElementById('extraItems').value) || 0;
         const price = parseFloat(document.getElementById('salePrice').value) || 0;
         const name = document.getElementById('projName').value || "Proyecto";
+        
         const data = runCalculation(grams, hours, qty, extras, price);
         processSale(name, data);
         ['usedGrams', 'hours', 'salePrice', 'projName'].forEach(id => document.getElementById(id).value = '');
@@ -252,35 +272,32 @@
     function processSale(name, data) {
         db.ref('capital').transaction(c => {
             if(!c) c = { mat:0, ene:0, mch:0, ext:0, net:0 };
-            c.mat = (c.mat || 0) + data.mat;
-            c.ene = (c.ene || 0) + data.ene;
-            c.mch = (c.mch || 0) + data.mch;
-            c.ext = (c.ext || 0) + data.ext;
-            c.net = (c.net || 0) + data.net;
+            c.mat = Math.round((c.mat || 0) + data.mat);
+            c.ene = Math.round((c.ene || 0) + data.ene);
+            c.mch = Math.round((c.mch || 0) + data.mch);
+            c.ext = Math.round((c.ext || 0) + data.ext);
+            c.net = Math.round((c.net || 0) + data.net);
             return c;
         });
         db.ref('history').push({
-            name, total: data.total.toFixed(2), net: data.net.toFixed(2),
-            mat: data.mat, ene: data.ene, mch: data.mch, ext: data.ext, // Guardamos desglose para poder borrar luego
+            name, total: data.total, net: data.net,
+            mat: data.mat, ene: data.ene, mch: data.mch, ext: data.ext,
             raw: data.raw, date: new Date().toLocaleString()
         });
     }
 
-    // ELIMINAR REGISTRO Y RESTAR DEL CAPITAL
     function deleteRecord(key) {
-        if(!confirm("¿Estás seguro de eliminar este registro? Se restará el dinero del capital.")) return;
-        
+        if(!confirm("¿Eliminar registro? Se restará el valor del capital.")) return;
         db.ref('history/' + key).once('value', snap => {
             const v = snap.val();
             if(!v) return;
-
             db.ref('capital').transaction(c => {
                 if(c) {
-                    c.mat -= (v.mat || 0);
-                    c.ene -= (v.ene || 0);
-                    c.mch -= (v.mch || 0);
-                    c.ext -= (v.ext || 0);
-                    c.net -= (parseFloat(v.net) || 0);
+                    c.mat = Math.round(c.mat - (v.mat || 0));
+                    c.ene = Math.round(c.ene - (v.ene || 0));
+                    c.mch = Math.round(c.mch - (v.mch || 0));
+                    c.ext = Math.round(c.ext - (v.ext || 0));
+                    c.net = Math.round(c.net - (v.net || 0));
                 }
                 return c;
             });
@@ -288,34 +305,31 @@
         });
     }
 
-    // EDITAR REGISTRO (CARGA LOS DATOS ARRIBA)
     function editRecord(key) {
         db.ref('history/' + key).once('value', snap => {
             const v = snap.val();
             if(!v) return;
-
-            // Cargamos en la sección de Proyecto Personalizado por ser la más completa
             document.getElementById('projName').value = v.name;
             document.getElementById('usedGrams').value = v.raw.grams;
             document.getElementById('hours').value = v.raw.hours;
             document.getElementById('itemQty').value = v.raw.qty;
             document.getElementById('extraItems').value = v.ext;
             document.getElementById('salePrice').value = v.total;
-
-            alert("Datos cargados en 'Proyecto Personalizado'. Edita y vuelve a registrar. Luego borra el registro viejo.");
+            alert("Cargado en 'Proyecto Personalizado'.");
             window.scrollTo({ top: document.getElementById('sectionDetail').offsetTop - 20, behavior: 'smooth' });
         });
     }
 
     function saveManualAdjustment() {
-        const getV = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const getV = (id) => Math.round(parseFloat(document.getElementById(id).value) || 0);
         db.ref('capital').set({
             mat: getV('capMat'), ene: getV('capEne'), mch: getV('capMch'), ext: getV('capExt'), net: getV('capNet')
-        }).then(() => alert("✅ Fondos actualizados."));
+        }).then(() => alert("✅ Fondos ajustados y redondeados."));
     }
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
 
+    // Fondo Animado
     for(let i=0; i<6; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word'; n.innerText = 'NUÑEZ';
