@@ -93,8 +93,8 @@
             <div><label>Cantidad</label><input type="number" id="qQty" value="1"></div>
         </div>
         <div style="margin-top: 8px;">
-            <label>Precio de Venta ($)</label>
-            <input type="number" id="qPrice" placeholder="Ej: 1500" style="width: 93%; font-weight: bold; color: var(--primary);">
+            <label>Precio Unitario ($)</label>
+            <input type="number" id="qPriceUnit" placeholder="Ej: 1500" style="width: 93%; font-weight: bold; color: var(--primary);">
         </div>
         <button class="btn-reg" onclick="registerQuickSale()" style="background: var(--warning);">🚀 REGISTRAR LLAVERO</button>
     </div>
@@ -118,7 +118,7 @@
         </div>
 
         <div style="background: #eff6ff; padding: 10px; border-radius: 12px; border: 2px solid var(--accent); margin-top: 10px;">
-            <label style="color: var(--primary)">Precio Venta Total ($)</label>
+            <label style="color: var(--primary)">Precio Venta TOTAL ($)</label>
             <input type="number" id="salePrice" style="width: 93%; font-size: 1.2rem; font-weight: 900;">
         </div>
         <button class="btn-reg" onclick="registerDetailSale()">🔥 REGISTRAR PROYECTO</button>
@@ -155,7 +155,6 @@
     
     const configIds = ['fPrice', 'machinePrice', 'machineLife', 'kwhCost', 'wattage'];
 
-    // Cargar Configuración y Capital
     db.ref('settings').on('value', snap => {
         const d = snap.val();
         if(d) configIds.forEach(id => { if(d[id]) document.getElementById(id).value = d[id]; });
@@ -173,7 +172,6 @@
         document.getElementById('sumNet').innerText = `$${nt.toLocaleString()}`;
     });
 
-    // Cargar Historial
     db.ref('history').limitToLast(10).on('value', snap => {
         const list = document.getElementById('historyList');
         list.innerHTML = '';
@@ -188,32 +186,29 @@
         }
     });
 
-    // LÓGICA DE CÁLCULO CORE
     function runCalculation(grams, hours, qty, extras, salePriceTotal) {
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
         const costMat = (v('fPrice') / 1000) * grams * qty;
         const costEne = (v('wattage')/1000) * hours * v('kwhCost') * qty;
         const costMch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * hours * qty : 0;
-        const costExt = extras;
-        const netProfit = salePriceTotal - (costMat + costEne + costMch + costExt);
-
-        return { mat: costMat, ene: costEne, mch: costMch, ext: costExt, net: netProfit, total: salePriceTotal };
+        const netProfit = salePriceTotal - (costMat + costEne + costMch + extras);
+        return { mat: costMat, ene: costEne, mch: costMch, ext: extras, net: netProfit, total: salePriceTotal };
     }
 
-    // REGISTRO VENTA RÁPIDA (LLAVERO)
     function registerQuickSale() {
         const grams = parseFloat(document.getElementById('qGrams').value) || 0;
         const qty = parseFloat(document.getElementById('qQty').value) || 0;
-        const price = parseFloat(document.getElementById('qPrice').value) || 0;
+        const priceUnit = parseFloat(document.getElementById('qPriceUnit').value) || 0;
         const name = document.getElementById('qName').value;
 
-        // Para llaveros rápidos, asumimos 0.3hs (20 min) de uso de máquina por unidad por defecto
-        const data = runCalculation(grams, 0.3, qty, 0, price);
+        // Aquí aplicamos tu regla: Precio unitario * Cantidad
+        const totalSale = priceUnit * qty;
+        const data = runCalculation(grams, 0.3, qty, 0, totalSale);
+        
         processSale(name, data);
-        document.getElementById('qPrice').value = '';
+        document.getElementById('qPriceUnit').value = '';
     }
 
-    // REGISTRO PROYECTO DETALLADO
     function registerDetailSale() {
         const grams = parseFloat(document.getElementById('usedGrams').value) || 0;
         const hours = parseFloat(document.getElementById('hours').value) || 0;
@@ -224,8 +219,6 @@
 
         const data = runCalculation(grams, hours, qty, extras, price);
         processSale(name, data);
-        
-        // Limpiar campos
         ['usedGrams', 'hours', 'salePrice', 'projName'].forEach(id => document.getElementById(id).value = '');
     }
 
@@ -239,7 +232,6 @@
             c.net = (c.net || 0) + data.net;
             return c;
         });
-
         db.ref('history').push({
             name: name,
             total: data.total.toFixed(2),
@@ -258,7 +250,6 @@
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
 
-    // Fondo animado
     for(let i=0; i<6; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word'; n.innerText = 'NUÑEZ';
