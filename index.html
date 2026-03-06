@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUÑEZ 3D - DESGLOSE DE COSTOS</title>
+    <title>NUÑEZ 3D - CONTABILIDAD AVANZADA</title>
     
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/n.png">
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/96/n.png">
@@ -38,15 +38,16 @@
         
         .results { background: #0f172a; color: white; padding: 15px; border-radius: 20px; margin-top: 10px; }
         .desglose-item { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        
-        /* Nuevo estilo para el sub-desglose */
         .sub-desglose { background: rgba(0,0,0,0.25); padding: 10px; border-radius: 10px; margin-bottom: 8px; font-size: 0.65rem; color: #cbd5e1; }
         .sub-desglose div { display: flex; justify-content: space-between; padding: 3px 0; }
         .sub-desglose div span:last-child { font-family: monospace; font-size: 0.7rem; }
 
-        .cap-input { width: 80%; border: none; background: #f1f5f9; font-size: 1rem; font-weight: 900; text-align: center; padding: 6px; border-radius: 8px; color: inherit; }
-        .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        /* Estilos nuevos para Capital */
+        .cap-box { display: flex; flex-direction: column; align-items: center; background: #f8fafc; padding: 5px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .cap-box label { font-size: 0.5rem; color: var(--warning); }
+        .cap-input { width: 90%; border: none; background: transparent; font-size: 0.85rem; font-weight: 900; text-align: center; color: #334155; padding: 2px; outline: none; }
         
+        .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
         .history-item { border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; align-items: center; }
         .action-btn { font-size: 0.9rem; cursor: pointer; border: none; background: none; }
         
@@ -58,17 +59,21 @@
 <div class="animated-bg" id="bg"></div>
 
 <div class="capital-card">
-    <div style="text-align: center; font-weight: 900; font-size: 0.75rem; margin-bottom: 8px;">💸 CAPITAL ACUMULADO</div>
-    <div class="grid">
-        <div style="color: var(--warning); text-align: center;">
-            <label style="font-size: 0.5rem;">REINVERSIÓN</label>
-            <input type="number" id="capFabInput" class="cap-input">
-        </div>
-        <div style="color: var(--success); text-align: center;">
-            <label style="font-size: 0.5rem;">GANANCIA PURA</label>
-            <input type="number" id="capNetInput" class="cap-input">
-        </div>
+    <div style="text-align: center; font-weight: 900; font-size: 0.75rem; margin-bottom: 8px;">💸 FONDOS ACUMULADOS</div>
+    
+    <div style="font-size: 0.55rem; font-weight: 800; color: #64748b; text-align: center; margin-bottom: 4px;">⬇️ PARA REINVERSIÓN Y GASTOS ⬇️</div>
+    <div class="grid" style="gap: 4px; grid-template-columns: 1fr 1fr 1fr 1fr;">
+        <div class="cap-box"><label>FILAMENTO</label><input type="number" id="capMat" class="cap-input"></div>
+        <div class="cap-box"><label>ENERGÍA</label><input type="number" id="capEne" class="cap-input"></div>
+        <div class="cap-box"><label>MÁQUINA</label><input type="number" id="capMch" class="cap-input"></div>
+        <div class="cap-box"><label>EXTRAS</label><input type="number" id="capExt" class="cap-input"></div>
     </div>
+
+    <div style="margin-top: 12px; background: #ecfdf5; padding: 8px; border-radius: 12px; border: 2px solid var(--success); text-align: center;">
+        <label style="font-size: 0.65rem; color: var(--success);">GANANCIA PURA (TU BOLSILLO)</label>
+        <input type="number" id="capNetInput" style="width: 100%; border: none; background: transparent; font-size: 1.3rem; font-weight: 900; text-align: center; color: var(--success); outline: none;">
+    </div>
+    
     <button onclick="updateCapitalManually()" style="font-size: 0.55rem; width: 100%; margin-top: 8px; color: #94a3b8; border: none; background: none; cursor: pointer; text-decoration: underline;">💾 Guardar Ajuste Manual</button>
 </div>
 
@@ -160,10 +165,19 @@
         calculate();
     });
 
+    // NUEVO: Cargar capital con los 5 campos
     db.ref('capital').on('value', snap => {
-        const c = snap.val() || { fab: 0, net: 0 };
-        document.getElementById('capFabInput').value = c.fab.toFixed(2);
-        document.getElementById('capNetInput').value = c.net.toFixed(2);
+        const c = snap.val() || { fabMat: 0, fabEne: 0, fabMch: 0, fabExt: 0, net: 0, fab: 0 };
+        
+        // Si hay un saldo "fab" viejo de las versiones anteriores, lo sumamos a extras temporalmente en la vista
+        // para que no pierdas esa plata. Luego podés acomodarlo a mano.
+        let saldoViejo = c.fab || 0;
+
+        document.getElementById('capMat').value = (c.fabMat || 0).toFixed(2);
+        document.getElementById('capEne').value = (c.fabEne || 0).toFixed(2);
+        document.getElementById('capMch').value = (c.fabMch || 0).toFixed(2);
+        document.getElementById('capExt').value = ((c.fabExt || 0) + saldoViejo).toFixed(2);
+        document.getElementById('capNetInput').value = (c.net || 0).toFixed(2);
     });
 
     db.ref('sales').on('value', snap => {
@@ -190,7 +204,6 @@
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
         const qty = v('itemQty') || 1;
         
-        // 1. DESGLOSE DE COSTOS
         const mat = (v('fPrice') / 1000) * v('usedGrams');
         const mch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * v('hours') : 0;
         const ene = (v('wattage')/1000) * v('hours') * v('kwhCost');
@@ -198,19 +211,16 @@
         
         const fabTotal = mat + mch + ene + extras;
         
-        // Mostrar Desglose en Pantalla
         document.getElementById('detFilamento').innerText = `$${mat.toFixed(2)}`;
         document.getElementById('detEnergia').innerText = `$${ene.toFixed(2)}`;
         document.getElementById('detMaquina').innerText = `$${mch.toFixed(2)}`;
         document.getElementById('detExtras').innerText = `$${extras.toFixed(2)}`;
 
-        // 2. CÁLCULO DE PRECIO SUGERIDO
         const profitMargin = v('profit') / 100;
         const suggestedTotal = fabTotal + (fabTotal * profitMargin);
         const suggestedUnit = suggestedTotal / qty;
         document.getElementById('suggestedPrice').innerText = `$${suggestedUnit.toFixed(2)}`;
 
-        // 3. VENTA REAL Y GANANCIA PURA
         const totalVenta = v('saleUnitPrice') * qty;
         const gananciaNeta = totalVenta - fabTotal;
 
@@ -219,7 +229,11 @@
         document.getElementById('resNet').innerText = `$${gananciaNeta.toFixed(2)}`;
         document.getElementById('resNetUnit').innerText = `$${(gananciaNeta / qty).toFixed(2)}`;
         
-        return { fab: fabTotal, net: gananciaNeta, total: totalVenta, name: document.getElementById('projName').value, qty: qty };
+        // Devolvemos el desglose completo
+        return { 
+            fabMat: mat, fabEne: ene, fabMch: mch, fabExt: extras, 
+            net: gananciaNeta, total: totalVenta, name: document.getElementById('projName').value, qty: qty 
+        };
     }
 
     function handleSaleAction() {
@@ -227,8 +241,11 @@
         if(editingKey) {
             db.ref('capital').transaction(c => {
                 if(c) {
-                    c.fab = c.fab - oldSaleData.fab + data.fab;
-                    c.net = c.net - oldSaleData.net + data.net;
+                    c.fabMat = (c.fabMat || 0) - (oldSaleData.fabMat || 0) + data.fabMat;
+                    c.fabEne = (c.fabEne || 0) - (oldSaleData.fabEne || 0) + data.fabEne;
+                    c.fabMch = (c.fabMch || 0) - (oldSaleData.fabMch || 0) + data.fabMch;
+                    c.fabExt = (c.fabExt || 0) - (oldSaleData.fabExt || 0) + data.fabExt;
+                    c.net = (c.net || 0) - (oldSaleData.net || 0) + data.net;
                 }
                 return c;
             });
@@ -237,8 +254,12 @@
         } else {
             db.ref('sales').push({...data, date: new Date().toLocaleDateString()});
             db.ref('capital').transaction(c => {
-                if(!c) c = { fab: 0, net: 0 };
-                c.fab += data.fab; c.net += data.net;
+                if(!c) c = { fabMat: 0, fabEne: 0, fabMch: 0, fabExt: 0, net: 0, fab: 0 };
+                c.fabMat = (c.fabMat || 0) + data.fabMat;
+                c.fabEne = (c.fabEne || 0) + data.fabEne;
+                c.fabMch = (c.fabMch || 0) + data.fabMch;
+                c.fabExt = (c.fabExt || 0) + data.fabExt;
+                c.net = (c.net || 0) + data.net;
                 return c;
             });
             const vals = {};
@@ -246,7 +267,7 @@
             db.ref('settings').set(vals);
             document.getElementById('projName').value = "";
         }
-        alert("¡Venta guardada!");
+        alert("¡Venta guardada y fondos distribuidos!");
     }
 
     function prepareEdit(key) {
@@ -267,11 +288,17 @@
     }
 
     function deleteSale(key) {
-        if(confirm("¿Borrar venta? Se restará del capital.")) {
+        if(confirm("¿Borrar venta? Se restarán los montos de tus fondos.")) {
             db.ref('sales/' + key).once('value', snap => {
                 const s = snap.val();
                 db.ref('capital').transaction(c => {
-                    if(c) { c.fab -= s.fab; c.net -= s.net; }
+                    if(c) { 
+                        c.fabMat = (c.fabMat || 0) - (s.fabMat || 0);
+                        c.fabEne = (c.fabEne || 0) - (s.fabEne || 0);
+                        c.fabMch = (c.fabMch || 0) - (s.fabMch || 0);
+                        c.fabExt = (c.fabExt || 0) - (s.fabExt || 0);
+                        c.net = (c.net || 0) - (s.net || 0);
+                    }
                     return c;
                 });
                 db.ref('sales/' + key).remove();
@@ -279,18 +306,14 @@
         }
     }
 
-    function cancelEdit() {
-        editingKey = null; oldSaleData = null;
-        document.getElementById('projName').value = "";
-        document.getElementById('btnMain').innerText = "🚀 REGISTRAR VENTA";
-        document.getElementById('btnCancel').classList.add('hidden');
-        document.getElementById('formTitle').innerText = "NUEVA VENTA";
-    }
-
     function updateCapitalManually() {
-        const fab = parseFloat(document.getElementById('capFabInput').value) || 0;
+        // Al guardar manualmente, eliminamos el "fab" viejo para limpiar la base de datos
+        const fabMat = parseFloat(document.getElementById('capMat').value) || 0;
+        const fabEne = parseFloat(document.getElementById('capEne').value) || 0;
+        const fabMch = parseFloat(document.getElementById('capMch').value) || 0;
+        const fabExt = parseFloat(document.getElementById('capExt').value) || 0;
         const net = parseFloat(document.getElementById('capNetInput').value) || 0;
-        db.ref('capital').set({ fab, net }).then(() => alert("Capital ajustado"));
+        db.ref('capital').set({ fabMat, fabEne, fabMch, fabExt, net, fab: 0 }).then(() => alert("Fondos ajustados manualmente"));
     }
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
