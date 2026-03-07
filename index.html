@@ -34,6 +34,14 @@
         .global-total-display label { color: var(--accent); font-size: 0.7rem; display: block; margin-bottom: 5px; }
         .global-total-display span { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; }
         
+        /* Estilos para la Vista Previa en Tiempo Real */
+        .live-preview {
+            background: #f8fafc; border: 1px dashed var(--accent); border-radius: 12px; padding: 10px; margin-top: 10px; margin-bottom: 10px;
+        }
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.65rem; color: #64748b; }
+        .preview-main { text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 5px; }
+        .preview-main span { display: block; font-weight: 900; font-size: 1rem; color: var(--primary); }
+
         h2 { margin: 0; color: var(--primary); font-size: 1.1rem; text-transform: uppercase; }
         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -49,8 +57,9 @@
 
         .net-box { margin-top: 15px; background: #ecfdf5; padding: 10px; border-radius: 15px; border: 2px solid var(--success); text-align: center; }
         
-        .quick-section { background: #fffbeb; border: 2px solid var(--warning); padding: 12px; border-radius: 18px; margin-bottom: 10px; }
-        .detail-section { background: #f8fafc; border: 2px solid var(--accent); padding: 12px; border-radius: 18px; }
+        .quick-section, .detail-section { background: #fff; padding: 12px; border-radius: 18px; margin-bottom: 10px; border: 2px solid transparent; }
+        .quick-section { border-color: var(--warning); }
+        .detail-section { border-color: var(--accent); }
 
         .btn-reg { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; transition: 0.2s; }
         .btn-reg:active { transform: scale(0.96); }
@@ -73,27 +82,22 @@
         <label>💰 TOTAL ABSOLUTO EN CAJA</label>
         <span id="globalTotalDisplay">$0</span>
     </div>
-
     <div style="text-align: center; font-weight: 900; font-size: 0.8rem; margin-bottom: 10px; color: var(--text);">📊 DESGLOSE DE FONDOS</div>
-    
     <div class="grid-4">
         <div class="cap-box"><label>FILAMENTO</label><input type="number" id="capMat"></div>
         <div class="cap-box"><label>ENERGÍA</label><input type="number" id="capEne"></div>
         <div class="cap-box"><label>MÁQUINA</label><input type="number" id="capMch"></div>
         <div class="cap-box"><label>EXTRAS</label><input type="number" id="capExt"></div>
     </div>
-
     <div class="comparison-bar">
         <div><label>REINVERSIÓN</label><span id="sumReinv" style="color: var(--warning);">$0</span></div>
         <div style="border-left: 1px solid #e2e8f0;"></div>
         <div><label>GANANCIA NETA</label><span id="sumNet" style="color: var(--success);">$0</span></div>
     </div>
-
     <div class="net-box">
         <label style="color: var(--success); font-size: 0.7rem;">🏆 GANANCIA PURA ACUMULADA</label>
         <input type="number" id="capNet" style="width: 100%; border: none; background: transparent; font-size: 1.5rem; font-weight: 900; text-align: center; color: var(--success); outline: none;">
     </div>
-    
     <button class="btn-save-manual" onclick="saveManualAdjustment()">💾 GUARDAR AJUSTE MANUAL</button>
 </div>
 
@@ -103,13 +107,20 @@
         <label>Nombre del Registro</label>
         <input type="text" id="qName" value="Llavero" style="width: 93%; margin-bottom: 8px;">
         <div class="grid-2">
-            <div><label>Gramos</label><input type="number" id="qGrams" value="10"></div>
-            <div><label>Cantidad</label><input type="number" id="qQty" value="1"></div>
+            <div><label>Gramos</label><input type="number" id="qGrams" value="10" oninput="updateQuickPreview()"></div>
+            <div><label>Cantidad</label><input type="number" id="qQty" value="1" oninput="updateQuickPreview()"></div>
         </div>
-        <div style="margin-top: 8px;">
-            <label>Precio Unitario ($)</label>
-            <input type="number" id="qPriceUnit" placeholder="Ej: 1500" style="width: 93%; font-weight: bold; color: var(--primary);">
+        
+        <div class="live-preview" id="qPreviewBox">
+            <div class="preview-main"><label>SUGERIDO UNITARIO</label><span id="qSugerido">$0</span></div>
+            <div class="preview-grid">
+                <div>Costo Mat: <b id="qCMat">$0</b></div>
+                <div>Costo Luz: <b id="qCEne">$0</b></div>
+            </div>
         </div>
+
+        <label>Precio Unitario Real ($)</label>
+        <input type="number" id="qPriceUnit" placeholder="Ej: 1500" style="width: 93%; font-weight: bold; color: var(--primary);">
         <button class="btn-reg" onclick="registerQuickSale()" style="background: var(--warning);">🚀 REGISTRAR LLAVERO</button>
     </div>
 </div>
@@ -119,22 +130,26 @@
         <h2>🎨 Proyecto Personalizado</h2>
         <button onclick="toggleConfig()" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">⚙️</button>
     </div>
-
     <div class="detail-section">
-        <label>Nombre del Proyecto</label>
-        <input type="text" id="projName" placeholder="Ej: Maceta Grande" style="width: 93%; margin-bottom: 8px;">
-        
         <div class="grid-2">
-            <div><label>Gramos</label><input type="number" id="usedGrams"></div>
-            <div><label>Horas</label><input type="number" id="hours"></div>
-            <div><label>Cantidad</label><input type="number" id="itemQty" value="1"></div>
-            <div><label>Extras $</label><input type="number" id="extraItems" value="0"></div>
+            <div><label>Gramos</label><input type="number" id="usedGrams" oninput="updateDetailPreview()"></div>
+            <div><label>Horas</label><input type="number" id="hours" oninput="updateDetailPreview()"></div>
+            <div><label>Cantidad</label><input type="number" id="itemQty" value="1" oninput="updateDetailPreview()"></div>
+            <div><label>Extras $</label><input type="number" id="extraItems" value="0" oninput="updateDetailPreview()"></div>
         </div>
 
-        <div style="background: #eff6ff; padding: 10px; border-radius: 12px; border: 2px solid var(--accent); margin-top: 10px;">
-            <label style="color: var(--primary)">Precio Venta TOTAL ($)</label>
-            <input type="number" id="salePrice" style="width: 93%; font-size: 1.2rem; font-weight: 900;">
+        <div class="live-preview" id="dPreviewBox">
+            <div class="preview-main"><label>PRECIO SUGERIDO TOTAL</label><span id="dSugerido">$0</span></div>
+            <div class="preview-grid">
+                <div>Mat: <b id="dCMat">$0</b></div>
+                <div>Luz: <b id="dCEne">$0</b></div>
+                <div>Máq: <b id="dCMch">$0</b></div>
+                <div>Costo Base: <b id="dCBase">$0</b></div>
+            </div>
         </div>
+
+        <label>Precio Venta Real ($)</label>
+        <input type="number" id="salePrice" style="width: 93%; font-size: 1.2rem; font-weight: 900;">
         <button class="btn-reg" onclick="registerDetailSale()">🔥 REGISTRAR PROYECTO</button>
     </div>
 
@@ -155,7 +170,6 @@
 </div>
 
 <script>
-    // Configuración Firebase (Usando tu DB)
     const firebaseConfig = {
         apiKey: "AIzaSyCx6AkXCmpXArUpaIDd8zZIS3Gav8qRg-o",
         authDomain: "calculadora-3d-54d4e.firebaseapp.com",
@@ -170,36 +184,27 @@
     
     const configIds = ['fPrice', 'machinePrice', 'machineLife', 'kwhCost', 'wattage'];
 
-    // Carga de configuración
     db.ref('settings').on('value', snap => {
         const d = snap.val();
         if(d) configIds.forEach(id => { if(d[id]) document.getElementById(id).value = d[id]; });
+        updateQuickPreview(); // Actualizar previews al cargar settings
+        updateDetailPreview();
     });
 
-    // Carga de Capital con REDONDEO matemático
     db.ref('capital').on('value', snap => {
         const c = snap.val() || {};
-        const m = Math.round(c.mat || 0), 
-              e = Math.round(c.ene || 0), 
-              mc = Math.round(c.mch || 0), 
-              ex = Math.round(c.ext || 0), 
-              nt = Math.round(c.net || 0);
-
+        const m = Math.round(c.mat || 0), e = Math.round(c.ene || 0), mc = Math.round(c.mch || 0), ex = Math.round(c.ext || 0), nt = Math.round(c.net || 0);
         document.getElementById('capMat').value = m;
         document.getElementById('capEne').value = e;
         document.getElementById('capMch').value = mc;
         document.getElementById('capExt').value = ex;
         document.getElementById('capNet').value = nt;
-
         const totalReinv = m + e + mc + ex;
-        const totalGlobal = totalReinv + nt;
-
         document.getElementById('sumReinv').innerText = `$${totalReinv.toLocaleString()}`;
         document.getElementById('sumNet').innerText = `$${nt.toLocaleString()}`;
-        document.getElementById('globalTotalDisplay').innerText = `$${totalGlobal.toLocaleString()}`;
+        document.getElementById('globalTotalDisplay').innerText = `$${(totalReinv + nt).toLocaleString()}`;
     });
 
-    // Historial
     db.ref('history').limitToLast(15).on('value', snap => {
         const list = document.getElementById('historyList');
         list.innerHTML = '';
@@ -207,39 +212,59 @@
         if(data) {
             Object.keys(data).reverse().forEach(key => {
                 const v = data[key];
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
+                list.innerHTML += `<div class="history-item">
                     <div style="flex:1"><strong>${v.name}</strong><br><small>${v.date}</small></div>
-                    <div style="text-align:right; margin-right:10px;">
-                        <b>$${Math.round(v.total)}</b><br><small style="color:green">Neto: $${Math.round(v.net)}</small>
-                    </div>
+                    <div style="text-align:right; margin-right:10px;"><b>$${Math.round(v.total)}</b><br><small style="color:green">Neto: $${Math.round(v.net)}</small></div>
                     <div class="history-actions">
                         <button class="btn-action" onclick="editRecord('${key}')">✏️</button>
                         <button class="btn-action" onclick="deleteRecord('${key}')">🗑️</button>
-                    </div>`;
-                list.appendChild(div);
+                    </div></div>`;
             });
         }
     });
 
-    // LÓGICA DE CÁLCULO CON REDONDEO FORZADO
+    // --- LÓGICA DE VISTA PREVIA ---
+    function updateQuickPreview() {
+        const g = parseFloat(document.getElementById('qGrams').value) || 0;
+        const q = parseFloat(document.getElementById('qQty').value) || 0;
+        const calc = runCalculation(g, 0.3, 1, 0, 0); // Cálculo por unidad
+        
+        document.getElementById('qCMat').innerText = `$${calc.mat}`;
+        document.getElementById('qCEne').innerText = `$${calc.ene}`;
+        // Sugerimos un precio (Costo * 3 para tener buen margen)
+        const sugerido = (calc.mat + calc.ene + calc.mch) * 3;
+        document.getElementById('qSugerido').innerText = `$${Math.round(sugerido)}`;
+    }
+
+    function updateDetailPreview() {
+        const g = parseFloat(document.getElementById('usedGrams').value) || 0;
+        const h = parseFloat(document.getElementById('hours').value) || 0;
+        const q = parseFloat(document.getElementById('itemQty').value) || 1;
+        const ext = parseFloat(document.getElementById('extraItems').value) || 0;
+        
+        const calc = runCalculation(g, h, q, ext, 0);
+        
+        document.getElementById('dCMat').innerText = `$${calc.mat}`;
+        document.getElementById('dCEne').innerText = `$${calc.ene}`;
+        document.getElementById('dCMch').innerText = `$${calc.mch}`;
+        const totalCosto = calc.mat + calc.ene + calc.mch + calc.ext;
+        document.getElementById('dCBase').innerText = `$${totalCosto}`;
+        
+        const sugerido = totalCosto * 2.5; // Margen menor por volumen
+        document.getElementById('dSugerido').innerText = `$${Math.round(sugerido)}`;
+    }
+
+    // --- FUNCIONES DE REGISTRO ---
     function runCalculation(grams, hours, qty, extras, salePriceTotal) {
         const v = (id) => parseFloat(document.getElementById(id).value) || 0;
-        
         const costMat = (v('fPrice') / 1000) * grams * qty;
         const costEne = (v('wattage')/1000) * hours * v('kwhCost') * qty;
         const costMch = v('machineLife') > 0 ? (v('machinePrice') / v('machineLife')) * hours * qty : 0;
-        
-        const rawNet = salePriceTotal - (costMat + costEne + costMch + extras);
+        const netProfit = salePriceTotal - (costMat + costEne + costMch + extras);
 
         return { 
-            mat: Math.round(costMat), 
-            ene: Math.round(costEne), 
-            mch: Math.round(costMch), 
-            ext: Math.round(extras), 
-            net: Math.round(rawNet), 
-            total: Math.round(salePriceTotal), 
+            mat: Math.round(costMat), ene: Math.round(costEne), mch: Math.round(costMch), 
+            ext: Math.round(extras), net: Math.round(netProfit), total: Math.round(salePriceTotal), 
             raw: {grams, hours, qty} 
         };
     }
@@ -249,9 +274,7 @@
         const qty = parseFloat(document.getElementById('qQty').value) || 0;
         const priceUnit = parseFloat(document.getElementById('qPriceUnit').value) || 0;
         const name = document.getElementById('qName').value;
-        const totalSale = priceUnit * qty;
-        
-        const data = runCalculation(grams, 0.3, qty, 0, totalSale);
+        const data = runCalculation(grams, 0.3, qty, 0, priceUnit * qty);
         processSale(name, data);
         document.getElementById('qPriceUnit').value = '';
     }
@@ -263,10 +286,9 @@
         const extras = parseFloat(document.getElementById('extraItems').value) || 0;
         const price = parseFloat(document.getElementById('salePrice').value) || 0;
         const name = document.getElementById('projName').value || "Proyecto";
-        
         const data = runCalculation(grams, hours, qty, extras, price);
         processSale(name, data);
-        ['usedGrams', 'hours', 'salePrice', 'projName'].forEach(id => document.getElementById(id).value = '');
+        ['usedGrams', 'hours', 'salePrice'].forEach(id => document.getElementById(id).value = '');
     }
 
     function processSale(name, data) {
@@ -287,17 +309,12 @@
     }
 
     function deleteRecord(key) {
-        if(!confirm("¿Eliminar registro? Se restará el valor del capital.")) return;
+        if(!confirm("¿Eliminar registro?")) return;
         db.ref('history/' + key).once('value', snap => {
             const v = snap.val();
-            if(!v) return;
             db.ref('capital').transaction(c => {
                 if(c) {
-                    c.mat = Math.round(c.mat - (v.mat || 0));
-                    c.ene = Math.round(c.ene - (v.ene || 0));
-                    c.mch = Math.round(c.mch - (v.mch || 0));
-                    c.ext = Math.round(c.ext - (v.ext || 0));
-                    c.net = Math.round(c.net - (v.net || 0));
+                    c.mat -= v.mat; c.ene -= v.ene; c.mch -= v.mch; c.ext -= v.ext; c.net -= v.net;
                 }
                 return c;
             });
@@ -308,28 +325,23 @@
     function editRecord(key) {
         db.ref('history/' + key).once('value', snap => {
             const v = snap.val();
-            if(!v) return;
-            document.getElementById('projName').value = v.name;
             document.getElementById('usedGrams').value = v.raw.grams;
             document.getElementById('hours').value = v.raw.hours;
             document.getElementById('itemQty').value = v.raw.qty;
-            document.getElementById('extraItems').value = v.ext;
             document.getElementById('salePrice').value = v.total;
-            alert("Cargado en 'Proyecto Personalizado'.");
+            updateDetailPreview();
             window.scrollTo({ top: document.getElementById('sectionDetail').offsetTop - 20, behavior: 'smooth' });
         });
     }
 
     function saveManualAdjustment() {
         const getV = (id) => Math.round(parseFloat(document.getElementById(id).value) || 0);
-        db.ref('capital').set({
-            mat: getV('capMat'), ene: getV('capEne'), mch: getV('capMch'), ext: getV('capExt'), net: getV('capNet')
-        }).then(() => alert("✅ Fondos ajustados y redondeados."));
+        db.ref('capital').set({ mat: getV('capMat'), ene: getV('capEne'), mch: getV('capMch'), ext: getV('capExt'), net: getV('capNet') })
+        .then(() => alert("✅ Fondos ajustados."));
     }
 
     function toggleConfig() { document.getElementById('configSection').classList.toggle('hidden'); }
 
-    // Fondo Animado
     for(let i=0; i<6; i++) {
         const n = document.createElement('div');
         n.className = 'nuñez-word'; n.innerText = 'NUÑEZ';
